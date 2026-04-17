@@ -532,7 +532,7 @@
         <h1>Track your lifts with a clean, focused workflow.</h1>
         <p>
           Add sets as you train, review the full session for the selected day, and save it to
-          localStorage so your progress is ready the next time you open the app.
+          the tracker server so your progress is ready every time you reopen the app.
         </p>
       </div>
       <div class="hero-meta" aria-label="Current session summary">
@@ -663,10 +663,8 @@
       "Deficit Deadlifts"
     ];
 
-    const STORAGE_KEYS = {
-      sessions: "gymTrackerSessions",
-      drafts: "gymTrackerDrafts"
-    };
+    const API_BASE = "/api/workouts";
+    const SYNC_CHANNEL_NAME = "gym-progress-tracker";
 
     const loggerForm = document.getElementById("loggerForm");
     const dateInput = document.getElementById("sessionDate");
@@ -685,29 +683,50 @@
     const exerciseCount = document.getElementById("exerciseCount");
     const sessionVolume = document.getElementById("sessionVolume");
 
-    // Saved sessions power the charts. Drafts keep in-progress changes alive between refreshes.
-    let sessions = normalizeStore(readStorage(STORAGE_KEYS.sessions));
-    let drafts = normalizeStore(readStorage(STORAGE_KEYS.drafts));
+    let sessions = {};
+    let drafts = {};
+    let hasPendingSync = false;
 
-    writeStorage(STORAGE_KEYS.sessions, sessions);
-    writeStorage(STORAGE_KEYS.drafts, drafts);
+    const syncChannel = "BroadcastChannel" in window ? new BroadcastChannel(SYNC_CHANNEL_NAME) : null;
 
     populateExerciseOptions();
     dateInput.value = getTodayISODate();
-    loadDate(dateInput.value);
+    render({ skipStatus: true });
+    setControlsDisabled(true);
+    setStatus("Connecting to the tracker server...", "");
 
     loggerForm.addEventListener("submit", handleAddEntry);
     saveSessionButton.addEventListener("click", saveSession);
     dateInput.addEventListener("change", () => loadDate(dateInput.value));
     sessionTableBody.addEventListener("click", handleDeleteEntry);
-
-    window.addEventListener("storage", (event) => {
-      if (event.key === STORAGE_KEYS.sessions || event.key === STORAGE_KEYS.drafts) {
-        sessions = normalizeStore(readStorage(STORAGE_KEYS.sessions));
-        drafts = normalizeStore(readStorage(STORAGE_KEYS.drafts));
-        loadDate(dateInput.value);
+    window.addEventListener("focus", () => refreshFromServer({ skipStatus: true }).catch(() => {}));
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        refreshFromServer({ skipStatus: true }).catch(() => {});
       }
     });
+
+    if (syncChannel) {
+      syncChannel.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "workouts-updated") {
+          refreshFromServer({ skipStatus: true }).catch(() => {});
+        }
+      });
+    }
+
+    initialize();
+
+    async function initialize() {
+      try {
+        await refreshFromServer({ allowOverwrite: true });
+        hasPendingSync = false;
+      } catch (error) {
+        render({ skipStatus: true });
+        setStatus("Could not reach the tracker server. Start it with `node server.js` and refresh.", "warn");
+      } finally {
+        setControlsDisabled(false);
+      }
+    }
 
     function populateExerciseOptions() {
       const options = EXERCISES.map((exercise) => {
@@ -720,7 +739,7 @@
       exerciseSelect.replaceChildren(...options);
     }
 
-    function handleAddEntry(event) {
+    async function handleAddEntry(event) {
       event.preventDefault();
 
       const sets = Number.parseInt(setsInput.value, 10);
@@ -757,7 +776,6 @@
       });
 
       drafts[date] = entries;
-      writeStorage(STORAGE_KEYS.drafts, drafts);
       render();
 
       setsInput.value = "";
@@ -765,10 +783,15 @@
       weightInput.value = "";
       setsInput.focus();
 
-      setStatus("Entry added to the current session draft. Save when you are ready.", "ok");
+      try {
+        await persistDraft(date);
+      } catch (error) {
+        hasPendingSync = true;
+        setStatus("Draft updated in this tab, but it could not be written to disk yet.", "warn");
+      }
     }
 
-    function handleDeleteEntry(event) {
+    async function handleDeleteEntry(event) {
       const button = event.target.closest("button[data-entry-id]");
       if (!button) {
         return;
@@ -776,35 +799,38 @@
 
       const date = dateInput.value;
       const entryId = button.dataset.entryId;
-      const nextEntries = ensureDraft(date).filter((entry) => entry.id !== entryId);
 
-      drafts[date] = nextEntries;
-      writeStorage(STORAGE_KEYS.drafts, drafts);
+      drafts[date] = ensureDraft(date).filter((entry) => entry.id !== entryId);
       render();
-      setStatus("Entry removed from the current session draft.", "ok");
+
+      try {
+        await persistDraft(date);
+      } catch (error) {
+        hasPendingSync = true;
+        setStatus("Entry removed locally, but the draft could not be synced to disk.", "warn");
+      }
     }
 
-    function saveSession() {
+    async function saveSession() {
       const date = dateInput.value;
       const draftEntries = ensureDraft(date);
 
-      if (draftEntries.length) {
-        sessions[date] = draftEntries.map((entry) => ({ ...entry }));
-        setStatus(
-          "Session saved to localStorage for " + formatLongDate(date) + ".",
-          "ok"
-        );
-      } else {
-        delete sessions[date];
-        setStatus(
-          "Saved session cleared for " + formatLongDate(date) + ".",
-          "ok"
-        );
-      }
+      try {
+        const store = await writeEntries("sessions", date, draftEntries);
+        applyStore(store);
+        hasPendingSync = false;
+        render({ skipStatus: true });
 
-      writeStorage(STORAGE_KEYS.sessions, sessions);
-      writeStorage(STORAGE_KEYS.drafts, drafts);
-      render();
+        if (draftEntries.length) {
+          setStatus("Session saved to disk for " + formatLongDate(date) + ".", "ok");
+        } else {
+          setStatus("Saved session cleared for " + formatLongDate(date) + ".", "ok");
+        }
+
+        announceStoreUpdate();
+      } catch (error) {
+        setStatus("Could not save the session. Make sure the tracker server is running.", "warn");
+      }
     }
 
     function loadDate(date) {
@@ -816,15 +842,18 @@
       render();
     }
 
-    function render() {
-      const date = dateInput.value;
+    function render(options = {}) {
+      const date = dateInput.value || getTodayISODate();
       const currentEntries = ensureDraft(date);
       const savedEntries = sanitizeEntries(sessions[date]);
 
       renderTable(currentEntries);
       renderSessionSummary(currentEntries);
       renderSavedSummary(savedEntries);
-      updateStatusForSaveState(currentEntries, savedEntries, date);
+
+      if (!options.skipStatus) {
+        updateStatusForSaveState(currentEntries, savedEntries, date);
+      }
     }
 
     function renderTable(entries) {
@@ -890,28 +919,65 @@
     function ensureDraft(date) {
       if (!Array.isArray(drafts[date])) {
         drafts[date] = sanitizeEntries(sessions[date]).map((entry) => ({ ...entry }));
-        writeStorage(STORAGE_KEYS.drafts, drafts);
       }
 
       return drafts[date];
     }
 
-    function readStorage(key) {
-      try {
-        const rawValue = localStorage.getItem(key);
-        if (!rawValue) {
-          return {};
-        }
-
-        const parsedValue = JSON.parse(rawValue);
-        return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
-      } catch (error) {
-        return {};
+    async function refreshFromServer(renderOptions = {}) {
+      if (hasPendingSync && !renderOptions.allowOverwrite) {
+        return;
       }
+
+      const store = await fetchStore();
+      applyStore(store);
+      hasPendingSync = false;
+      ensureDraft(dateInput.value);
+      render(renderOptions);
     }
 
-    function writeStorage(key, value) {
-      localStorage.setItem(key, JSON.stringify(value));
+    function applyStore(store) {
+      sessions = normalizeStore(store && store.savedSessions);
+      drafts = normalizeStore(store && store.draftSessions);
+    }
+
+    async function fetchStore() {
+      const response = await fetch(API_BASE, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("Failed to load tracker data");
+      }
+
+      return response.json();
+    }
+
+    async function persistDraft(date) {
+      const store = await writeEntries("drafts", date, ensureDraft(date));
+      applyStore(store);
+      hasPendingSync = false;
+      render({ skipStatus: true });
+      announceStoreUpdate();
+    }
+
+    async function writeEntries(bucket, date, entries) {
+      const response = await fetch(API_BASE + "/" + bucket + "/" + encodeURIComponent(date), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ entries })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to write tracker data");
+      }
+
+      return response.json();
+    }
+
+    function announceStoreUpdate() {
+      if (syncChannel) {
+        syncChannel.postMessage({ type: "workouts-updated" });
+      }
     }
 
     function normalizeStore(store) {
@@ -947,6 +1013,14 @@
           weight
         };
       }).filter(Boolean);
+    }
+
+    function setControlsDisabled(disabled) {
+      Array.from(loggerForm.elements).forEach((element) => {
+        element.disabled = disabled;
+      });
+
+      saveSessionButton.disabled = disabled;
     }
 
     function createEntryId() {

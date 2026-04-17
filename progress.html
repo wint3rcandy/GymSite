@@ -425,7 +425,7 @@
       <div class="picker-card">
         <label for="exerciseSelect">Exercise</label>
         <select id="exerciseSelect" name="exerciseSelect"></select>
-        <div class="metric-copy">The chart reads saved sessions from localStorage and updates instantly when your logger page changes.</div>
+        <div class="metric-copy">The chart reads saved sessions from the tracker server and refreshes whenever new workout data is written.</div>
       </div>
     </section>
 
@@ -500,7 +500,8 @@
       "Deficit Deadlifts"
     ];
 
-    const STORAGE_KEY = "gymTrackerSessions";
+    const API_BASE = "/api/workouts";
+    const SYNC_CHANNEL_NAME = "gym-progress-tracker";
 
     const exerciseSelect = document.getElementById("exerciseSelect");
     const chartTitle = document.getElementById("chartTitle");
@@ -511,10 +512,14 @@
     const firstLogged = document.getElementById("firstLogged");
     const toggleButtons = Array.from(document.querySelectorAll(".toggle-button"));
 
-    let sessions = normalizeStore(readStorage(STORAGE_KEY));
+    let sessions = {};
     let currentMetric = "max";
+    let serverAvailable = true;
+
+    const syncChannel = "BroadcastChannel" in window ? new BroadcastChannel(SYNC_CHANNEL_NAME) : null;
 
     populateExerciseOptions();
+    updateToggleState();
     const chart = createChart();
     updateDashboard();
 
@@ -528,12 +533,22 @@
       });
     });
 
-    window.addEventListener("storage", (event) => {
-      if (event.key === STORAGE_KEY) {
-        sessions = normalizeStore(readStorage(STORAGE_KEY));
-        updateDashboard();
+    window.addEventListener("focus", () => refreshSessions(true));
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        refreshSessions(true);
       }
     });
+
+    if (syncChannel) {
+      syncChannel.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "workouts-updated") {
+          refreshSessions(true);
+        }
+      });
+    }
+
+    refreshSessions(false);
 
     function populateExerciseOptions() {
       const options = EXERCISES.map((exercise) => {
@@ -544,6 +559,23 @@
       });
 
       exerciseSelect.replaceChildren(...options);
+    }
+
+    async function refreshSessions(silent) {
+      try {
+        const store = await fetchStore();
+        sessions = normalizeStore(store && store.savedSessions);
+        serverAvailable = true;
+        updateDashboard();
+      } catch (error) {
+        serverAvailable = false;
+        if (silent) {
+          return;
+        }
+
+        sessions = {};
+        updateDashboard();
+      }
     }
 
     function updateDashboard() {
@@ -563,8 +595,24 @@
       chart.options.scales.y.title.text = isMaxMetric ? "Weight (lbs)" : "Volume (lbs)";
       chart.update();
 
-      emptyState.hidden = series.length > 0;
+      renderEmptyState(series.length === 0);
       renderStats(series);
+    }
+
+    function renderEmptyState(isEmpty) {
+      if (!isEmpty) {
+        emptyState.hidden = true;
+        return;
+      }
+
+      emptyState.hidden = false;
+
+      if (serverAvailable) {
+        emptyState.innerHTML = "<div><strong>No saved data yet</strong>Save a session for this exercise on the logger page to start building your chart.</div>";
+        return;
+      }
+
+      emptyState.innerHTML = "<div><strong>Server unavailable</strong>Start the tracker with <code>node server.js</code> to load your saved workout history.</div>";
     }
 
     function renderStats(series) {
@@ -712,18 +760,13 @@
       });
     }
 
-    function readStorage(key) {
-      try {
-        const rawValue = localStorage.getItem(key);
-        if (!rawValue) {
-          return {};
-        }
-
-        const parsedValue = JSON.parse(rawValue);
-        return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
-      } catch (error) {
-        return {};
+    async function fetchStore() {
+      const response = await fetch(API_BASE, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("Failed to load tracker data");
       }
+
+      return response.json();
     }
 
     function normalizeStore(store) {
