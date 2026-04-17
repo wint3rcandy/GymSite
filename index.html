@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0f17">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='10' y1='10' x2='54' y2='54' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2342d6ff'/%3E%3Cstop offset='1' stop-color='%2378f6c5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='%23090d14'/%3E%3Cpath d='M10 28h4v8h-4zm4-4h4v16h-4zm4-5h4v26h-4zm4 11h20v4H22zm20-11h4v26h-4zm4 5h4v16h-4zm4 4h4v8h-4z' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23141d2b' stroke-width='2'/%3E%3C/svg%3E">
   <title>Gym Progress Tracker | Workout Logger</title>
   <style>
     :root {
@@ -104,6 +106,7 @@
       border: 1px solid rgba(123, 146, 171, 0.16);
       border-radius: 999px;
       color: var(--muted);
+      text-align: center;
       transition: transform 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
     }
 
@@ -215,13 +218,6 @@
       font-weight: 700;
     }
 
-    .panel-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
     .card {
       padding: 24px;
       transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
@@ -259,6 +255,116 @@
 
     .field-wide {
       grid-column: 1 / -1;
+    }
+
+    .field-date,
+    .field-exercise,
+    .field-weight {
+      grid-column: span 1;
+    }
+
+    .field-series {
+      grid-column: 1 / -1;
+    }
+
+    .date-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .date-chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(123, 146, 171, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
+    }
+
+    .date-chip:hover,
+    .date-chip:focus-visible {
+      color: var(--text);
+      border-color: rgba(66, 214, 255, 0.36);
+      background: rgba(66, 214, 255, 0.1);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .date-hint {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .form-note {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .inline-status {
+      display: none;
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(123, 146, 171, 0.16);
+      background: rgba(8, 13, 22, 0.72);
+    }
+
+    .inline-status.show {
+      display: block;
+    }
+
+    .inline-status.warn {
+      border-color: rgba(255, 170, 102, 0.22);
+      background: rgba(255, 170, 102, 0.08);
+    }
+
+    .status-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .status-copy.warn {
+      color: #ffd28d;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 82px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(123, 146, 171, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    .status-pill.failed {
+      border-color: rgba(255, 170, 102, 0.26);
+      background: rgba(255, 170, 102, 0.1);
+      color: #ffd28d;
+    }
+
+    .status-pill.completed {
+      border-color: rgba(106, 242, 174, 0.24);
+      background: rgba(106, 242, 174, 0.1);
+      color: #bff9d7;
+    }
+
+    .status-pill.zone2 {
+      border-color: rgba(66, 214, 255, 0.28);
+      background: rgba(66, 214, 255, 0.1);
+      color: #aeeeff;
     }
 
     label {
@@ -320,61 +426,6 @@
       background: rgba(255, 255, 255, 0.06);
       color: var(--text);
       border: 1px solid rgba(123, 146, 171, 0.16);
-    }
-
-    .status-panel {
-      display: grid;
-      gap: 16px;
-      align-content: start;
-    }
-
-    .status-banner {
-      padding: 16px 18px;
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(123, 146, 171, 0.14);
-      background: rgba(8, 13, 22, 0.74);
-    }
-
-    .status-banner strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 0.96rem;
-    }
-
-    .status-copy {
-      color: var(--muted);
-      min-height: 1.5em;
-    }
-
-    .status-copy.ok {
-      color: var(--success);
-    }
-
-    .status-copy.warn {
-      color: var(--warning);
-    }
-
-    .mini-stats {
-      display: grid;
-      gap: 14px;
-    }
-
-    .mini-stat {
-      padding: 18px;
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(123, 146, 171, 0.14);
-      background: rgba(8, 13, 22, 0.72);
-    }
-
-    .mini-stat span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.92rem;
-      margin-bottom: 6px;
-    }
-
-    .mini-stat strong {
-      font-size: 1.28rem;
     }
 
     .table-card {
@@ -462,8 +513,7 @@
     }
 
     @media (max-width: 920px) {
-      .hero-card,
-      .panel-grid {
+      .hero-card {
         grid-template-columns: 1fr;
       }
 
@@ -478,18 +528,31 @@
         padding-top: 18px;
       }
 
+      .top-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 18px;
+      }
+
       .top-nav,
       .hero-card,
       .card {
         border-radius: 22px;
       }
 
-      .top-nav {
-        padding: 18px;
+      .nav-links {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .hero-card {
         padding: 22px;
+      }
+
+      .hero-card h1 {
+        font-size: clamp(1.9rem, 10vw, 2.45rem);
       }
 
       .hero-meta,
@@ -497,18 +560,188 @@
         grid-template-columns: 1fr;
       }
 
+      .metric-card {
+        padding: 16px;
+      }
+
+      .date-tools {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .field-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .field-date,
+      .field-exercise,
+      .field-weight,
+      .field-series {
+        grid-column: 1 / -1;
+      }
+
+      .card-intro {
+        margin-bottom: 18px;
+      }
+
       .table-header {
         flex-direction: column;
         align-items: flex-start;
       }
 
+      .table-wrap {
+        overflow: visible;
+        border: none;
+        background: transparent;
+      }
+
+      table {
+        min-width: 0;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: grid;
+        gap: 12px;
+      }
+
+      tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 14px;
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(123, 146, 171, 0.14);
+        background: rgba(7, 12, 20, 0.76);
+      }
+
+      td {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 0;
+        border-bottom: none;
+      }
+
+      td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      td:last-child {
+        grid-column: 1 / -1;
+        padding-top: 2px;
+      }
+
+      .empty-row {
+        display: block;
+        padding: 0;
+        border: none;
+        background: transparent;
+      }
+
+      .empty-row td {
+        display: block;
+        padding: 22px 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(123, 146, 171, 0.14);
+        background: rgba(7, 12, 20, 0.76);
+      }
+
+      .empty-row td::before {
+        content: none;
+      }
+
       .button-row {
         width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .button {
-        flex: 1 1 100%;
-        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .app-shell {
+        width: min(100% - 14px, 100%);
+        padding-top: 14px;
+      }
+
+      .top-nav,
+      .hero-card,
+      .card {
+        border-radius: 20px;
+      }
+
+      .hero-card,
+      .card {
+        padding: 18px;
+      }
+
+      .brand-title {
+        font-size: 1rem;
+      }
+
+      .brand-subtitle,
+      .card-intro,
+      .hero-card p {
+        font-size: 0.92rem;
+      }
+
+      .metric-value {
+        font-size: 1.55rem;
+      }
+
+      .nav-links {
+        gap: 8px;
+      }
+
+      .nav-link {
+        padding: 10px 12px;
+      }
+
+      .date-tools {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .field-grid {
+        gap: 12px;
+      }
+
+      .field-date,
+      .field-exercise {
+        grid-column: span 1;
+      }
+
+      .date-chip {
+        padding: 8px 6px;
+        font-size: 0.82rem;
+      }
+
+      .button-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .date-chip,
+      .nav-link,
+      .button,
+      .delete-button {
+        min-height: 46px;
+      }
+
+      tbody tr {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 12px;
       }
     }
   </style>
@@ -545,73 +778,64 @@
           <div class="metric-value" id="exerciseCount">0</div>
         </div>
         <div class="metric-card">
-          <span class="metric-label">Session Volume</span>
+          <span class="metric-label" id="sessionOutputLabel">Session Volume</span>
           <div class="metric-value" id="sessionVolume">0 lbs</div>
         </div>
       </div>
     </section>
 
-    <section class="panel-grid">
-      <article class="card">
-        <h2>Workout Logger</h2>
-        <p class="card-intro">Choose the training date, enter your set details, and build out the day one entry at a time.</p>
+    <section class="card">
+      <h2>Workout Logger</h2>
+      <p class="card-intro">Choose the training date, enter your set details, and build out the day one entry at a time. Entries save automatically as you log.</p>
+      <div class="inline-status" id="statusPanel" aria-live="polite">
+        <p class="status-copy" id="statusCopy"></p>
+      </div>
 
-        <form id="loggerForm">
-          <div class="field-grid">
-            <div class="field">
-              <label for="sessionDate">Date</label>
-              <input id="sessionDate" name="sessionDate" type="date" required>
+      <form id="loggerForm">
+        <div class="field-grid">
+          <div class="field field-date">
+            <label for="sessionDate">Date</label>
+            <input id="sessionDate" name="sessionDate" type="date" required>
+            <div class="date-tools" aria-label="Quick date controls">
+              <button class="date-chip" type="button" data-date-action="previous">Previous Day</button>
+              <button class="date-chip" type="button" data-date-action="today">Today</button>
+              <button class="date-chip" type="button" data-date-action="next">Next Day</button>
             </div>
-
-            <div class="field">
-              <label for="exerciseSelect">Exercise</label>
-              <select id="exerciseSelect" name="exerciseSelect" required></select>
-            </div>
-
-            <div class="field">
-              <label for="setsInput">Number of Sets</label>
-              <input id="setsInput" name="setsInput" type="number" min="1" step="1" placeholder="3" required>
-            </div>
-
-            <div class="field">
-              <label for="repsInput">Number of Reps</label>
-              <input id="repsInput" name="repsInput" type="number" min="1" step="1" placeholder="8" required>
-            </div>
-
-            <div class="field-wide">
-              <label for="weightInput">Weight (lbs)</label>
-              <input id="weightInput" name="weightInput" type="number" min="0" step="0.5" placeholder="185" required>
-            </div>
+            <p class="date-hint">Use the picker or step through dates to backfill missed workouts.</p>
           </div>
 
-          <div class="button-row">
-            <button class="button button-primary" type="submit">Add Set</button>
-            <button class="button button-secondary" id="saveSessionButton" type="button">Save Session</button>
+          <div class="field field-exercise">
+            <label for="exerciseSelect">Exercise</label>
+            <select id="exerciseSelect" name="exerciseSelect" required></select>
           </div>
-        </form>
-      </article>
 
-      <aside class="status-panel">
-        <div class="status-banner">
-          <strong>Session status</strong>
-          <div class="status-copy" id="statusCopy" aria-live="polite"></div>
-        </div>
+          <div class="field">
+            <label for="setsInput" id="setsLabel">Number of Sets</label>
+            <input id="setsInput" name="setsInput" type="number" min="1" step="1" placeholder="3" required>
+          </div>
 
-        <div class="mini-stats">
-          <div class="mini-stat">
-            <span>Selected Date</span>
-            <strong id="selectedDateLabel">--</strong>
+          <div class="field">
+            <label for="repsInput" id="repsLabel">Number of Reps</label>
+            <input id="repsInput" name="repsInput" type="number" min="1" step="1" placeholder="8" required>
           </div>
-          <div class="mini-stat">
-            <span>Saved Entries</span>
-            <strong id="savedEntryCount">0</strong>
+
+          <div class="field-wide field-weight">
+            <label for="weightInput" id="weightLabel">Weight</label>
+            <input id="weightInput" name="weightInput" type="text" inputmode="decimal" placeholder="185 or bodyweight">
+            <p class="form-note" id="weightNote">Use a number for loaded lifts or type <code>bodyweight</code> for BW movements.</p>
           </div>
-          <div class="mini-stat">
-            <span>Saved Session Volume</span>
-            <strong id="savedVolume">0 lbs</strong>
+
+          <div class="field field-series" id="weightSeriesField">
+            <label for="weightSeriesInput">Quick Single Series</label>
+            <input id="weightSeriesInput" name="weightSeriesInput" type="text" placeholder="225, 255, 275, 295f">
+            <p class="form-note">Optional: adds one single per weight at the current reps. Add <code>f</code> or <code>fail</code> to mark a miss, like <code>295f</code>.</p>
           </div>
         </div>
-      </aside>
+
+        <div class="button-row">
+          <button class="button button-primary" type="submit">Add Set</button>
+        </div>
+      </form>
     </section>
 
     <section class="card table-card">
@@ -627,9 +851,10 @@
           <thead>
             <tr>
               <th scope="col">Exercise</th>
-              <th scope="col">Sets</th>
-              <th scope="col">Reps</th>
-              <th scope="col">Weight</th>
+              <th scope="col">Sets / Grade</th>
+              <th scope="col">Reps / Speed</th>
+              <th scope="col">Weight / Time</th>
+              <th scope="col">Result</th>
               <th scope="col">Action</th>
             </tr>
           </thead>
@@ -660,11 +885,17 @@
       "Machine Lateral Raises",
       "Reverse Pec Deck",
       "Paused Deadlifts",
-      "Deficit Deadlifts"
+      "Deficit Deadlifts",
+      "Zone 2"
     ];
-
+    const ZONE2_EXERCISE = "Zone 2";
+    const FAILED_STATUS_SUFFIXES = new Set(["f", "fail", "failed", "miss", "missed", "x"]);
+    const BODYWEIGHT_TOKENS = new Set(["bodyweight", "body", "bw", "bwt"]);
     const API_BASE = "/api/workouts";
     const SYNC_CHANNEL_NAME = "gym-progress-tracker";
+    const UI_STORAGE_KEYS = {
+      selectedDate: "gymTrackerSelectedDate"
+    };
 
     const loggerForm = document.getElementById("loggerForm");
     const dateInput = document.getElementById("sessionDate");
@@ -672,16 +903,21 @@
     const setsInput = document.getElementById("setsInput");
     const repsInput = document.getElementById("repsInput");
     const weightInput = document.getElementById("weightInput");
-    const saveSessionButton = document.getElementById("saveSessionButton");
+    const weightSeriesInput = document.getElementById("weightSeriesInput");
     const sessionTableBody = document.getElementById("sessionTableBody");
-    const statusCopy = document.getElementById("statusCopy");
-    const selectedDateLabel = document.getElementById("selectedDateLabel");
-    const savedEntryCount = document.getElementById("savedEntryCount");
-    const savedVolume = document.getElementById("savedVolume");
     const tableSubtitle = document.getElementById("tableSubtitle");
     const entryCount = document.getElementById("entryCount");
     const exerciseCount = document.getElementById("exerciseCount");
+    const sessionOutputLabel = document.getElementById("sessionOutputLabel");
     const sessionVolume = document.getElementById("sessionVolume");
+    const statusPanel = document.getElementById("statusPanel");
+    const statusCopy = document.getElementById("statusCopy");
+    const setsLabel = document.getElementById("setsLabel");
+    const repsLabel = document.getElementById("repsLabel");
+    const weightLabel = document.getElementById("weightLabel");
+    const weightNote = document.getElementById("weightNote");
+    const weightSeriesField = document.getElementById("weightSeriesField");
+    const dateShortcutButtons = Array.from(document.querySelectorAll("[data-date-action]"));
 
     let sessions = {};
     let drafts = {};
@@ -690,26 +926,29 @@
     const syncChannel = "BroadcastChannel" in window ? new BroadcastChannel(SYNC_CHANNEL_NAME) : null;
 
     populateExerciseOptions();
-    dateInput.value = getTodayISODate();
-    render({ skipStatus: true });
+    dateInput.value = getInitialSelectedDate();
+    applyExerciseMode();
+    render();
     setControlsDisabled(true);
-    setStatus("Connecting to the tracker server...", "");
 
     loggerForm.addEventListener("submit", handleAddEntry);
-    saveSessionButton.addEventListener("click", saveSession);
     dateInput.addEventListener("change", () => loadDate(dateInput.value));
+    exerciseSelect.addEventListener("change", handleExerciseChange);
     sessionTableBody.addEventListener("click", handleDeleteEntry);
-    window.addEventListener("focus", () => refreshFromServer({ skipStatus: true }).catch(() => {}));
+    dateShortcutButtons.forEach((button) => {
+      button.addEventListener("click", () => handleDateShortcut(button.dataset.dateAction));
+    });
+    window.addEventListener("focus", () => refreshFromServer().catch(() => {}));
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
-        refreshFromServer({ skipStatus: true }).catch(() => {});
+        refreshFromServer().catch(() => {});
       }
     });
 
     if (syncChannel) {
       syncChannel.addEventListener("message", (event) => {
         if (event.data && event.data.type === "workouts-updated") {
-          refreshFromServer({ skipStatus: true }).catch(() => {});
+          refreshFromServer().catch(() => {});
         }
       });
     }
@@ -720,9 +959,10 @@
       try {
         await refreshFromServer({ allowOverwrite: true });
         hasPendingSync = false;
+        hideStatus();
       } catch (error) {
-        render({ skipStatus: true });
-        setStatus("Could not reach the tracker server. Start it with `node server.js` and refresh.", "warn");
+        render();
+        showStatus("Could not reach the tracker server. Start it with `node server.js` and refresh.");
       } finally {
         setControlsDisabled(false);
       }
@@ -742,52 +982,118 @@
     async function handleAddEntry(event) {
       event.preventDefault();
 
+      const zone2Selected = isZone2Exercise(exerciseSelect.value);
       const sets = Number.parseInt(setsInput.value, 10);
       const reps = Number.parseInt(repsInput.value, 10);
-      const weight = Number.parseFloat(weightInput.value);
+      const parsedWeight = zone2Selected ? null : parseWeightInput(weightInput.value);
+      const weightSeries = weightSeriesInput.value.trim();
+
+      if (zone2Selected) {
+        const grade = parseCardioMetric(setsInput.value, true);
+        const speed = parseCardioMetric(repsInput.value);
+        const duration = parseCardioMetric(weightInput.value);
+
+        if (grade === null) {
+          showStatus("Enter a valid grade percent for your Zone 2 session.");
+          setsInput.focus();
+          return;
+        }
+
+        if (speed === null) {
+          showStatus("Enter a valid speed in mph for your Zone 2 session.");
+          repsInput.focus();
+          return;
+        }
+
+        if (duration === null) {
+          showStatus("Enter a valid time length in minutes for your Zone 2 session.");
+          weightInput.focus();
+          return;
+        }
+
+        const date = dateInput.value;
+        const entries = ensureDraft(date);
+
+        entries.push({
+          id: createEntryId(),
+          exercise: exerciseSelect.value,
+          entryType: "zone2",
+          grade,
+          speed,
+          duration,
+          status: "completed"
+        });
+
+        drafts[date] = entries;
+        render();
+        weightInput.focus();
+
+        try {
+          await persistSession(date);
+          hideStatus();
+        } catch (error) {
+          hasPendingSync = true;
+          showStatus("The Zone 2 entry was added here, but it could not be written to disk yet.");
+        }
+        return;
+      }
 
       if (!Number.isInteger(sets) || sets < 1) {
-        setStatus("Enter a valid number of sets before adding the entry.", "warn");
+        showStatus("Enter a valid number of sets before adding the entry.");
         setsInput.focus();
         return;
       }
 
       if (!Number.isInteger(reps) || reps < 1) {
-        setStatus("Enter a valid number of reps before adding the entry.", "warn");
+        showStatus("Enter a valid number of reps before adding the entry.");
         repsInput.focus();
         return;
       }
 
-      if (!Number.isFinite(weight) || weight < 0) {
-        setStatus("Enter a valid training weight in pounds.", "warn");
+      if (!weightSeries && !parsedWeight) {
+        showStatus("Enter a valid weight or type bodyweight.");
         weightInput.focus();
         return;
       }
 
       const date = dateInput.value;
       const entries = ensureDraft(date);
+      const newEntries = weightSeries
+        ? parseWeightSeries(weightSeries, exerciseSelect.value, reps)
+        : [{
+            id: createEntryId(),
+            exercise: exerciseSelect.value,
+            sets,
+            reps,
+            weight: parsedWeight.weight,
+            weightType: parsedWeight.weightType,
+            status: "completed"
+          }];
 
-      entries.push({
-        id: createEntryId(),
-        exercise: exerciseSelect.value,
-        sets,
-        reps,
-        weight
-      });
+      if (!newEntries.length) {
+        showStatus("Use a quick series like 225, 255, 275, 295f to log multiple singles.");
+        weightSeriesInput.focus();
+        return;
+      }
+
+      entries.push(...newEntries);
 
       drafts[date] = entries;
       render();
 
-      setsInput.value = "";
-      repsInput.value = "";
-      weightInput.value = "";
-      setsInput.focus();
+      if (weightSeries) {
+        weightSeriesInput.value = "";
+        weightSeriesInput.focus();
+      } else {
+        weightInput.focus();
+      }
 
       try {
-        await persistDraft(date);
+        await persistSession(date);
+        hideStatus();
       } catch (error) {
         hasPendingSync = true;
-        setStatus("Draft updated in this tab, but it could not be written to disk yet.", "warn");
+        showStatus("The entry was added here, but it could not be written to disk yet.");
       }
     }
 
@@ -804,32 +1110,11 @@
       render();
 
       try {
-        await persistDraft(date);
+        await persistSession(date);
+        hideStatus();
       } catch (error) {
         hasPendingSync = true;
-        setStatus("Entry removed locally, but the draft could not be synced to disk.", "warn");
-      }
-    }
-
-    async function saveSession() {
-      const date = dateInput.value;
-      const draftEntries = ensureDraft(date);
-
-      try {
-        const store = await writeEntries("sessions", date, draftEntries);
-        applyStore(store);
-        hasPendingSync = false;
-        render({ skipStatus: true });
-
-        if (draftEntries.length) {
-          setStatus("Session saved to disk for " + formatLongDate(date) + ".", "ok");
-        } else {
-          setStatus("Saved session cleared for " + formatLongDate(date) + ".", "ok");
-        }
-
-        announceStoreUpdate();
-      } catch (error) {
-        setStatus("Could not save the session. Make sure the tracker server is running.", "warn");
+        showStatus("The entry was removed here, but the change could not be written to disk yet.");
       }
     }
 
@@ -838,22 +1123,18 @@
         return;
       }
 
+      persistSelectedDate(date);
       ensureDraft(date);
+      hideStatus();
       render();
     }
 
-    function render(options = {}) {
+    function render() {
       const date = dateInput.value || getTodayISODate();
       const currentEntries = ensureDraft(date);
-      const savedEntries = sanitizeEntries(sessions[date]);
 
       renderTable(currentEntries);
       renderSessionSummary(currentEntries);
-      renderSavedSummary(savedEntries);
-
-      if (!options.skipStatus) {
-        updateStatusForSaveState(currentEntries, savedEntries, date);
-      }
     }
 
     function renderTable(entries) {
@@ -861,18 +1142,19 @@
 
       if (!entries.length) {
         sessionTableBody.innerHTML =
-          '<tr class="empty-row"><td colspan="5">No sets logged for this date yet.</td></tr>';
+          '<tr class="empty-row"><td colspan="6">No entries logged for this date yet.</td></tr>';
         return;
       }
 
       sessionTableBody.innerHTML = entries.map((entry) => {
         return [
           "<tr>",
-          "<td>" + entry.exercise + "</td>",
-          "<td>" + entry.sets + "</td>",
-          "<td>" + entry.reps + "</td>",
-          "<td>" + formatWeight(entry.weight) + " lbs</td>",
-          '<td><button class="delete-button" type="button" data-entry-id="' + entry.id + '">Delete</button></td>',
+          '<td data-label="Exercise">' + entry.exercise + "</td>",
+          '<td data-label="Sets / Grade">' + formatPrimaryMetric(entry) + "</td>",
+          '<td data-label="Reps / Speed">' + formatSecondaryMetric(entry) + "</td>",
+          '<td data-label="Weight / Time">' + formatTertiaryMetric(entry) + "</td>",
+          '<td data-label="Result"><span class="status-pill ' + getStatusPillClass(entry) + '">' + formatEntryStatus(entry) + "</span></td>",
+          '<td data-label="Action"><button class="delete-button" type="button" data-entry-id="' + entry.id + '">Delete</button></td>',
           "</tr>"
         ].join("");
       }).join("");
@@ -881,39 +1163,16 @@
     function renderSessionSummary(entries) {
       const exerciseTotal = new Set(entries.map((entry) => entry.exercise)).size;
       const volumeTotal = entries.reduce((total, entry) => {
-        return total + (entry.sets * entry.reps * entry.weight);
+        return total + getEntryVolume(entry);
+      }, 0);
+      const zone2DurationTotal = entries.reduce((total, entry) => {
+        return total + getZone2Duration(entry);
       }, 0);
 
       entryCount.textContent = String(entries.length);
       exerciseCount.textContent = String(exerciseTotal);
-      sessionVolume.textContent = formatLargeNumber(volumeTotal) + " lbs";
-      selectedDateLabel.textContent = formatLongDate(dateInput.value);
-    }
-
-    function renderSavedSummary(entries) {
-      const savedSessionVolume = entries.reduce((total, entry) => {
-        return total + (entry.sets * entry.reps * entry.weight);
-      }, 0);
-
-      savedEntryCount.textContent = String(entries.length);
-      savedVolume.textContent = formatLargeNumber(savedSessionVolume) + " lbs";
-    }
-
-    function updateStatusForSaveState(currentEntries, savedEntries, date) {
-      const currentJSON = JSON.stringify(currentEntries);
-      const savedJSON = JSON.stringify(savedEntries);
-
-      if (!currentEntries.length && !savedEntries.length) {
-        setStatus("Start adding sets for " + formatLongDate(date) + ".", "");
-        return;
-      }
-
-      if (currentJSON === savedJSON) {
-        setStatus("Session is saved and up to date for " + formatLongDate(date) + ".", "ok");
-        return;
-      }
-
-      setStatus("You have unsaved changes for " + formatLongDate(date) + ".", "warn");
+      sessionOutputLabel.textContent = getSessionOutputLabel(volumeTotal, zone2DurationTotal);
+      sessionVolume.textContent = formatSessionOutput(volumeTotal, zone2DurationTotal);
     }
 
     function ensureDraft(date) {
@@ -924,8 +1183,8 @@
       return drafts[date];
     }
 
-    async function refreshFromServer(renderOptions = {}) {
-      if (hasPendingSync && !renderOptions.allowOverwrite) {
+    async function refreshFromServer(options = {}) {
+      if (hasPendingSync && !options.allowOverwrite) {
         return;
       }
 
@@ -933,12 +1192,12 @@
       applyStore(store);
       hasPendingSync = false;
       ensureDraft(dateInput.value);
-      render(renderOptions);
+      render();
     }
 
     function applyStore(store) {
       sessions = normalizeStore(store && store.savedSessions);
-      drafts = normalizeStore(store && store.draftSessions);
+      drafts = normalizeStore(store && store.savedSessions);
     }
 
     async function fetchStore() {
@@ -950,11 +1209,11 @@
       return response.json();
     }
 
-    async function persistDraft(date) {
-      const store = await writeEntries("drafts", date, ensureDraft(date));
+    async function persistSession(date) {
+      const store = await writeEntries("sessions", date, ensureDraft(date));
       applyStore(store);
       hasPendingSync = false;
-      render({ skipStatus: true });
+      render();
       announceStoreUpdate();
     }
 
@@ -997,30 +1256,216 @@
 
       return entries.map((entry, index) => {
         const exercise = EXERCISES.includes(entry.exercise) ? entry.exercise : null;
+        const id = typeof entry.id === "string" && entry.id ? entry.id : "entry-" + Date.now() + "-" + index;
+
+        if (isZone2Exercise(exercise)) {
+          const grade = parseCardioMetric(entry.grade, true);
+          const speed = parseCardioMetric(entry.speed);
+          const duration = parseCardioMetric(entry.duration);
+
+          if (grade === null || speed === null || duration === null) {
+            return null;
+          }
+
+          return {
+            id,
+            exercise,
+            entryType: "zone2",
+            grade,
+            speed,
+            duration,
+            status: "completed"
+          };
+        }
+
         const sets = Number(entry.sets);
         const reps = Number(entry.reps);
-        const weight = Number(entry.weight);
+        const weightType = normalizeWeightType(entry);
+        const weight = weightType === "bodyweight" ? null : Number(entry.weight);
+        const status = normalizeStatus(entry.status);
 
-        if (!exercise || !Number.isFinite(sets) || sets < 1 || !Number.isFinite(reps) || reps < 1 || !Number.isFinite(weight) || weight < 0) {
+        if (!exercise || !Number.isFinite(sets) || sets < 1 || !Number.isFinite(reps) || reps < 1) {
+          return null;
+        }
+
+        if (weightType === "loaded" && (!Number.isFinite(weight) || weight < 0)) {
           return null;
         }
 
         return {
-          id: typeof entry.id === "string" && entry.id ? entry.id : "entry-" + Date.now() + "-" + index,
+          id,
           exercise,
+          entryType: "strength",
           sets,
           reps,
-          weight
+          weight,
+          weightType,
+          status
         };
       }).filter(Boolean);
+    }
+
+    function parseWeightSeries(value, exercise, reps) {
+      return value.split(/[\n,;]+/).map((token) => token.trim()).filter(Boolean).map((token) => {
+        const parsed = parseWeightSeriesToken(token);
+        if (!parsed) {
+          return null;
+        }
+
+        return {
+          id: createEntryId(),
+          exercise,
+          sets: 1,
+          reps,
+          weight: parsed.weight,
+          weightType: "loaded",
+          status: parsed.status
+        };
+      }).filter(Boolean);
+    }
+
+    function parseWeightInput(value) {
+      const trimmedValue = String(value || "").trim();
+      if (!trimmedValue) {
+        return null;
+      }
+
+      const condensed = trimmedValue.toLowerCase().replace(/\s+/g, "");
+      if (BODYWEIGHT_TOKENS.has(condensed)) {
+        return {
+          weight: null,
+          weightType: "bodyweight"
+        };
+      }
+
+      const numericWeight = Number.parseFloat(trimmedValue);
+      if (!Number.isFinite(numericWeight) || numericWeight < 0) {
+        return null;
+      }
+
+      return {
+        weight: numericWeight,
+        weightType: "loaded"
+      };
+    }
+
+    function parseWeightSeriesToken(token) {
+      const condensed = token.toLowerCase().replace(/\s+/g, "");
+      let numericPart = condensed;
+      let status = "completed";
+
+      const failedSuffix = Array.from(FAILED_STATUS_SUFFIXES).sort((left, right) => right.length - left.length).find((suffix) => {
+        return condensed.length > suffix.length && condensed.endsWith(suffix);
+      });
+
+      if (failedSuffix) {
+        numericPart = condensed.slice(0, -failedSuffix.length);
+        status = "failed";
+      }
+
+      if (!/^\d+(?:\.\d+)?$/.test(numericPart)) {
+        return null;
+      }
+
+      const weight = Number(numericPart);
+      if (!Number.isFinite(weight) || weight < 0) {
+        return null;
+      }
+
+      return { weight, status };
+    }
+
+    function parseCardioMetric(value, allowZero = false) {
+      const numericValue = Number.parseFloat(String(value || "").trim());
+      if (!Number.isFinite(numericValue)) {
+        return null;
+      }
+
+      if (allowZero ? numericValue < 0 : numericValue <= 0) {
+        return null;
+      }
+
+      return Number.isInteger(numericValue) ? numericValue : Number(numericValue.toFixed(1));
+    }
+
+    function normalizeWeightType(entry) {
+      if (!entry) {
+        return "loaded";
+      }
+
+      if (entry.weightType === "bodyweight") {
+        return "bodyweight";
+      }
+
+      if (typeof entry.weight === "string") {
+        const condensed = entry.weight.toLowerCase().replace(/\s+/g, "");
+        if (BODYWEIGHT_TOKENS.has(condensed)) {
+          return "bodyweight";
+        }
+      }
+
+      return "loaded";
+    }
+
+    function normalizeStatus(value) {
+      return value === "failed" ? "failed" : "completed";
+    }
+
+    function formatEntryStatus(entry) {
+      if (isZone2Entry(entry)) {
+        return "Logged";
+      }
+
+      return entry.status === "failed" ? "Failed" : "Made";
+    }
+
+    function getEntryVolume(entry) {
+      if (isZone2Entry(entry) || entry.status === "failed" || entry.weightType === "bodyweight") {
+        return 0;
+      }
+
+      return entry.sets * entry.reps * entry.weight;
+    }
+
+    function getZone2Duration(entry) {
+      if (!isZone2Entry(entry)) {
+        return 0;
+      }
+
+      return entry.duration;
     }
 
     function setControlsDisabled(disabled) {
       Array.from(loggerForm.elements).forEach((element) => {
         element.disabled = disabled;
       });
+    }
 
-      saveSessionButton.disabled = disabled;
+    function handleDateShortcut(action) {
+      if (action === "today") {
+        const today = getTodayISODate();
+        dateInput.value = today;
+        loadDate(today);
+        return;
+      }
+
+      if (action === "previous") {
+        shiftSelectedDate(-1);
+        return;
+      }
+
+      if (action === "next") {
+        shiftSelectedDate(1);
+      }
+    }
+
+    function shiftSelectedDate(days) {
+      const baseDate = parseISODate(dateInput.value || getTodayISODate());
+      baseDate.setDate(baseDate.getDate() + days);
+
+      const nextDate = formatISODate(baseDate);
+      dateInput.value = nextDate;
+      loadDate(nextDate);
     }
 
     function createEntryId() {
@@ -1037,6 +1482,42 @@
       return new Date(today.getTime() - offset).toISOString().slice(0, 10);
     }
 
+    function getInitialSelectedDate() {
+      try {
+        const savedDate = window.localStorage.getItem(UI_STORAGE_KEYS.selectedDate);
+        return isISODate(savedDate) ? savedDate : getTodayISODate();
+      } catch (error) {
+        return getTodayISODate();
+      }
+    }
+
+    function persistSelectedDate(date) {
+      if (!isISODate(date)) {
+        return;
+      }
+
+      try {
+        window.localStorage.setItem(UI_STORAGE_KEYS.selectedDate, date);
+      } catch (error) {
+        // Ignore UI preference storage failures and keep the logger functional.
+      }
+    }
+
+    function isISODate(value) {
+      return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(parseISODate(value).valueOf());
+    }
+
+    function parseISODate(dateString) {
+      return new Date(dateString + "T12:00:00");
+    }
+
+    function formatISODate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
     function formatLongDate(dateString) {
       if (!dateString) {
         return "--";
@@ -1046,11 +1527,35 @@
         month: "long",
         day: "numeric",
         year: "numeric"
-      }).format(new Date(dateString + "T12:00:00"));
+      }).format(parseISODate(dateString));
     }
 
-    function formatWeight(value) {
+    function formatValue(value) {
       return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+
+    function formatWeight(entry) {
+      if (entry.weightType === "bodyweight") {
+        return "Bodyweight";
+      }
+
+      return formatValue(entry.weight) + " lbs";
+    }
+
+    function formatPrimaryMetric(entry) {
+      return isZone2Entry(entry) ? formatCardioMetric(entry.grade, "%") : String(entry.sets);
+    }
+
+    function formatSecondaryMetric(entry) {
+      return isZone2Entry(entry) ? formatCardioMetric(entry.speed, " mph") : String(entry.reps);
+    }
+
+    function formatTertiaryMetric(entry) {
+      return isZone2Entry(entry) ? formatCardioMetric(entry.duration, " min") : formatWeight(entry);
+    }
+
+    function formatCardioMetric(value, suffix) {
+      return formatValue(value) + suffix;
     }
 
     function formatLargeNumber(value) {
@@ -1058,9 +1563,109 @@
       return rounded.toLocaleString();
     }
 
-    function setStatus(message, tone) {
+    function formatSessionOutput(volumeTotal, zone2DurationTotal) {
+      if (volumeTotal > 0 && zone2DurationTotal > 0) {
+        return formatLargeNumber(volumeTotal) + " lbs + " + formatValue(zone2DurationTotal) + " min";
+      }
+
+      if (zone2DurationTotal > 0) {
+        return formatValue(zone2DurationTotal) + " min";
+      }
+
+      return formatLargeNumber(volumeTotal) + " lbs";
+    }
+
+    function getSessionOutputLabel(volumeTotal, zone2DurationTotal) {
+      if (volumeTotal > 0 && zone2DurationTotal > 0) {
+        return "Session Output";
+      }
+
+      if (zone2DurationTotal > 0) {
+        return "Zone 2 Time";
+      }
+
+      return "Session Volume";
+    }
+
+    function handleExerciseChange() {
+      applyExerciseMode();
+      hideStatus();
+    }
+
+    function applyExerciseMode() {
+      const zone2Selected = isZone2Exercise(exerciseSelect.value);
+
+      setsLabel.textContent = zone2Selected ? "Grade (%)" : "Number of Sets";
+      repsLabel.textContent = zone2Selected ? "Speed (mph)" : "Number of Reps";
+      weightLabel.textContent = zone2Selected ? "Time Length (minutes)" : "Weight";
+
+      setsInput.min = zone2Selected ? "0" : "1";
+      setsInput.step = zone2Selected ? "0.1" : "1";
+      setsInput.placeholder = zone2Selected ? "15" : "3";
+
+      repsInput.min = zone2Selected ? "0" : "1";
+      repsInput.step = zone2Selected ? "0.1" : "1";
+      repsInput.placeholder = zone2Selected ? "1.8" : "8";
+
+      weightInput.type = zone2Selected ? "number" : "text";
+      weightInput.min = zone2Selected ? "0" : "";
+      weightInput.step = zone2Selected ? "0.1" : "";
+      weightInput.placeholder = zone2Selected ? "30" : "185 or bodyweight";
+      weightInput.inputMode = "decimal";
+
+      weightNote.innerHTML = zone2Selected
+        ? 'Typical Zone 2 entry: <code>15%</code> grade, <code>1.8 mph</code>, <code>30 min</code>.'
+        : 'Use a number for loaded lifts or type <code>bodyweight</code> for BW movements.';
+
+      weightSeriesField.hidden = zone2Selected;
+      weightSeriesInput.disabled = zone2Selected;
+
+      if (zone2Selected) {
+        weightSeriesInput.value = "";
+        seedZone2Defaults();
+      }
+    }
+
+    function seedZone2Defaults() {
+      if (!String(setsInput.value || "").trim()) {
+        setsInput.value = "15";
+      }
+
+      if (!String(repsInput.value || "").trim()) {
+        repsInput.value = "1.8";
+      }
+
+      if (!String(weightInput.value || "").trim()) {
+        weightInput.value = "30";
+      }
+    }
+
+    function isZone2Exercise(exercise) {
+      return exercise === ZONE2_EXERCISE;
+    }
+
+    function isZone2Entry(entry) {
+      return Boolean(entry && entry.entryType === "zone2");
+    }
+
+    function getStatusPillClass(entry) {
+      if (isZone2Entry(entry)) {
+        return "zone2";
+      }
+
+      return entry.status;
+    }
+
+    function showStatus(message, tone = "warn") {
       statusCopy.textContent = message;
+      statusPanel.className = "inline-status show" + (tone ? " " + tone : "");
       statusCopy.className = "status-copy" + (tone ? " " + tone : "");
+    }
+
+    function hideStatus() {
+      statusCopy.textContent = "";
+      statusPanel.className = "inline-status";
+      statusCopy.className = "status-copy";
     }
   </script>
 </body>

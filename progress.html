@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0f17">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='10' y1='10' x2='54' y2='54' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2342d6ff'/%3E%3Cstop offset='1' stop-color='%2378f6c5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='%23090d14'/%3E%3Cpath d='M10 28h4v8h-4zm4-4h4v16h-4zm4-5h4v26h-4zm4 11h20v4H22zm20-11h4v26h-4zm4 5h4v16h-4zm4 4h4v8h-4z' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23141d2b' stroke-width='2'/%3E%3C/svg%3E">
   <title>Gym Progress Tracker | Progress Charts</title>
   <style>
     :root {
@@ -102,6 +104,7 @@
       border: 1px solid rgba(123, 146, 171, 0.16);
       border-radius: 999px;
       color: var(--muted);
+      text-align: center;
       transition: transform 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
     }
 
@@ -315,6 +318,10 @@
       transition: opacity 180ms ease;
     }
 
+    .empty-state[hidden] {
+      display: none;
+    }
+
     .empty-state strong {
       display: block;
       margin-bottom: 8px;
@@ -365,10 +372,22 @@
         padding-top: 18px;
       }
 
+      .top-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+      }
+
       .top-nav,
       .hero-card,
       .card {
         border-radius: 22px;
+      }
+
+      .nav-links {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .top-nav,
@@ -376,6 +395,29 @@
       .card {
         padding-left: 18px;
         padding-right: 18px;
+      }
+
+      .hero-card {
+        gap: 18px;
+        padding-top: 22px;
+        padding-bottom: 22px;
+      }
+
+      .hero-card h1 {
+        font-size: clamp(1.9rem, 10vw, 2.45rem);
+      }
+
+      .picker-card,
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stats-grid .stat-card:last-child {
+        grid-column: 1 / -1;
       }
 
       .chart-top {
@@ -394,7 +436,71 @@
       }
 
       .chart-shell {
-        min-height: 320px;
+        min-height: 300px;
+        padding: 14px;
+      }
+
+      #progressChart {
+        height: 280px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .app-shell {
+        width: min(100% - 14px, 100%);
+        padding-top: 14px;
+      }
+
+      .top-nav,
+      .hero-card,
+      .card {
+        border-radius: 20px;
+      }
+
+      .hero-card,
+      .card {
+        padding: 18px;
+      }
+
+      .brand-title {
+        font-size: 1rem;
+      }
+
+      .brand-subtitle,
+      .hero-card p,
+      .chart-top p,
+      .stats-card p,
+      .metric-copy {
+        font-size: 0.92rem;
+      }
+
+      .nav-links {
+        gap: 8px;
+      }
+
+      .nav-link {
+        padding: 10px 12px;
+      }
+
+      .metric-toggle {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .nav-link,
+      .toggle-button {
+        min-height: 46px;
+      }
+
+      .stats-grid {
+        gap: 12px;
+      }
+
+      .chart-shell {
+        min-height: 260px;
+      }
+
+      #progressChart {
+        height: 240px;
       }
     }
   </style>
@@ -446,7 +552,7 @@
 
       <div class="chart-shell">
         <canvas id="progressChart"></canvas>
-        <div class="empty-state" id="emptyState">
+        <div class="empty-state" id="emptyState" hidden>
           <div>
             <strong>No saved data yet</strong>
             Save a session for this exercise on the logger page to start building your chart.
@@ -460,7 +566,7 @@
       <p>Quick reference numbers for the currently selected exercise.</p>
       <div class="stats-grid">
         <div class="stat-card">
-          <span class="stat-label">Personal Record</span>
+          <span class="stat-label" id="prLabel">Personal Record</span>
           <div class="stat-value" id="prValue">--</div>
         </div>
         <div class="stat-card">
@@ -497,8 +603,10 @@
       "Machine Lateral Raises",
       "Reverse Pec Deck",
       "Paused Deadlifts",
-      "Deficit Deadlifts"
+      "Deficit Deadlifts",
+      "Zone 2"
     ];
+    const ZONE2_EXERCISE = "Zone 2";
 
     const API_BASE = "/api/workouts";
     const SYNC_CHANNEL_NAME = "gym-progress-tracker";
@@ -507,6 +615,7 @@
     const chartTitle = document.getElementById("chartTitle");
     const metricCopy = document.getElementById("metricCopy");
     const emptyState = document.getElementById("emptyState");
+    const prLabel = document.getElementById("prLabel");
     const prValue = document.getElementById("prValue");
     const sessionCount = document.getElementById("sessionCount");
     const firstLogged = document.getElementById("firstLogged");
@@ -515,6 +624,7 @@
     let sessions = {};
     let currentMetric = "max";
     let serverAvailable = true;
+    let activeSeries = [];
 
     const syncChannel = "BroadcastChannel" in window ? new BroadcastChannel(SYNC_CHANNEL_NAME) : null;
 
@@ -581,25 +691,26 @@
     function updateDashboard() {
       const selectedExercise = exerciseSelect.value;
       const series = buildSeries(selectedExercise);
-      const isMaxMetric = currentMetric === "max";
-      const values = series.map((point) => point[currentMetric]);
+      const hasAnyEntries = hasExerciseEntries(selectedExercise);
+      const metricConfig = getMetricConfig(selectedExercise);
+      const values = series.map((point) => point[metricConfig.key]);
+      activeSeries = series;
 
       chartTitle.textContent = selectedExercise + " Progress";
-      metricCopy.textContent = isMaxMetric
-        ? "Tracking the heaviest single weight logged per saved session."
-        : "Tracking total work performed per saved session.";
+      metricCopy.textContent = metricConfig.copy;
+      syncExercisePresentation(selectedExercise);
 
       chart.data.labels = series.map((point) => point.date);
       chart.data.datasets[0].data = values;
-      chart.data.datasets[0].label = isMaxMetric ? "Max Weight per Session" : "Total Volume per Session";
-      chart.options.scales.y.title.text = isMaxMetric ? "Weight (lbs)" : "Volume (lbs)";
+      chart.data.datasets[0].label = metricConfig.datasetLabel;
+      chart.options.scales.y.title.text = metricConfig.axisTitle;
       chart.update();
 
-      renderEmptyState(series.length === 0);
-      renderStats(series);
+      renderEmptyState(series.length === 0, hasAnyEntries, selectedExercise);
+      renderStats(series, selectedExercise);
     }
 
-    function renderEmptyState(isEmpty) {
+    function renderEmptyState(isEmpty, hasAnyEntries, exercise) {
       if (!isEmpty) {
         emptyState.hidden = true;
         return;
@@ -608,14 +719,25 @@
       emptyState.hidden = false;
 
       if (serverAvailable) {
-        emptyState.innerHTML = "<div><strong>No saved data yet</strong>Save a session for this exercise on the logger page to start building your chart.</div>";
+        if (hasAnyEntries) {
+          emptyState.innerHTML = isZone2Exercise(exercise)
+            ? "<div><strong>No chart data yet</strong>Zone 2 entries are saved, but there is not enough cardio data yet to build the chart.</div>"
+            : "<div><strong>No weighted chart data yet</strong>This exercise only has bodyweight or failed attempts so far, so there is no weight trend to graph.</div>";
+          return;
+        }
+
+        emptyState.innerHTML = isZone2Exercise(exercise)
+          ? "<div><strong>No saved data yet</strong>Save a Zone 2 session on the logger page to start building your cardio chart.</div>"
+          : "<div><strong>No saved data yet</strong>Save a session for this exercise on the logger page to start building your chart.</div>";
         return;
       }
 
       emptyState.innerHTML = "<div><strong>Server unavailable</strong>Start the tracker with <code>node server.js</code> to load your saved workout history.</div>";
     }
 
-    function renderStats(series) {
+    function renderStats(series, exercise) {
+      prLabel.textContent = isZone2Exercise(exercise) ? "Longest Session" : "Personal Record";
+
       if (!series.length) {
         prValue.textContent = "--";
         sessionCount.textContent = "0";
@@ -623,22 +745,51 @@
         return;
       }
 
-      const recordWeight = Math.max(...series.map((point) => point.max));
+      const recordValue = Math.max(...series.map((point) => point.max));
 
-      prValue.textContent = formatValue(recordWeight) + " lbs";
+      prValue.textContent = isZone2Exercise(exercise)
+        ? formatValue(recordValue) + " min"
+        : formatValue(recordValue) + " lbs";
       sessionCount.textContent = String(series.length);
       firstLogged.textContent = formatLongDate(series[0].date);
     }
 
     function buildSeries(exercise) {
+      if (isZone2Exercise(exercise)) {
+        return Object.keys(sessions).sort().reduce((series, date) => {
+          const entries = sanitizeEntries(sessions[date]).filter((entry) => entry.exercise === exercise && entry.entryType === "zone2");
+
+          if (!entries.length) {
+            return series;
+          }
+
+          const duration = entries.reduce((total, entry) => total + entry.duration, 0);
+          const weightedSpeed = entries.reduce((total, entry) => total + (entry.speed * entry.duration), 0);
+          const weightedGrade = entries.reduce((total, entry) => total + (entry.grade * entry.duration), 0);
+          const distance = entries.reduce((total, entry) => total + ((entry.speed * entry.duration) / 60), 0);
+
+          series.push({
+            date,
+            max: duration,
+            volume: Number(distance.toFixed(2)),
+            avgSpeed: duration ? Number((weightedSpeed / duration).toFixed(1)) : 0,
+            avgGrade: duration ? Number((weightedGrade / duration).toFixed(1)) : 0
+          });
+
+          return series;
+        }, []);
+      }
+
       return Object.keys(sessions).sort().reduce((series, date) => {
         const entries = sanitizeEntries(sessions[date]).filter((entry) => entry.exercise === exercise);
-        if (!entries.length) {
+        const completedEntries = entries.filter((entry) => entry.status !== "failed" && entry.weightType === "loaded");
+
+        if (!completedEntries.length) {
           return series;
         }
 
-        const max = Math.max(...entries.map((entry) => entry.weight));
-        const volume = entries.reduce((total, entry) => {
+        const max = Math.max(...completedEntries.map((entry) => entry.weight));
+        const volume = completedEntries.reduce((total, entry) => {
           return total + (entry.sets * entry.reps * entry.weight);
         }, 0);
 
@@ -650,6 +801,12 @@
 
         return series;
       }, []);
+    }
+
+    function hasExerciseEntries(exercise) {
+      return Object.keys(sessions).some((date) => {
+        return sanitizeEntries(sessions[date]).some((entry) => entry.exercise === exercise);
+      });
     }
 
     function createChart() {
@@ -699,11 +856,22 @@
               callbacks: {
                 title: (items) => formatLongDate(items[0].label),
                 label: (item) => {
-                  if (currentMetric === "max") {
-                    return "Weight: " + formatValue(item.parsed.y) + " lbs";
+                  return formatTooltipValue(item.parsed.y);
+                },
+                afterBody: (items) => {
+                  if (!isZone2Exercise(exerciseSelect.value) || !items.length) {
+                    return [];
                   }
 
-                  return "Volume: " + formatLargeNumber(item.parsed.y) + " lbs";
+                  const point = activeSeries[items[0].dataIndex];
+                  if (!point) {
+                    return [];
+                  }
+
+                  return [
+                    "Speed: " + formatValue(point.avgSpeed) + " mph",
+                    "Grade: " + formatValue(point.avgGrade) + "%"
+                  ];
                 }
               }
             }
@@ -727,7 +895,7 @@
               },
               ticks: {
                 color: "#9fb2c8",
-                callback: (value) => currentMetric === "max" ? formatValue(value) : formatLargeNumber(value)
+                callback: (value) => formatAxisTick(value)
               },
               title: {
                 display: true,
@@ -786,21 +954,77 @@
 
       return entries.map((entry) => {
         const exercise = EXERCISES.includes(entry.exercise) ? entry.exercise : null;
+        if (isZone2Exercise(exercise)) {
+          const grade = parseCardioMetric(entry.grade, true);
+          const speed = parseCardioMetric(entry.speed);
+          const duration = parseCardioMetric(entry.duration);
+
+          if (!exercise || grade === null || speed === null || duration === null) {
+            return null;
+          }
+
+          return {
+            exercise,
+            entryType: "zone2",
+            grade,
+            speed,
+            duration,
+            status: "completed"
+          };
+        }
+
         const sets = Number(entry.sets);
         const reps = Number(entry.reps);
-        const weight = Number(entry.weight);
+        const weightType = normalizeWeightType(entry);
+        const weight = weightType === "bodyweight" ? null : Number(entry.weight);
+        const status = entry.status === "failed" ? "failed" : "completed";
 
-        if (!exercise || !Number.isFinite(sets) || sets < 1 || !Number.isFinite(reps) || reps < 1 || !Number.isFinite(weight) || weight < 0) {
+        if (!exercise || !Number.isFinite(sets) || sets < 1 || !Number.isFinite(reps) || reps < 1) {
+          return null;
+        }
+
+        if (weightType === "loaded" && (!Number.isFinite(weight) || weight < 0)) {
           return null;
         }
 
         return {
           exercise,
+          entryType: "strength",
           sets,
           reps,
-          weight
+          weight,
+          weightType,
+          status
         };
       }).filter(Boolean);
+    }
+
+    function normalizeWeightType(entry) {
+      if (entry && entry.weightType === "bodyweight") {
+        return "bodyweight";
+      }
+
+      if (entry && typeof entry.weight === "string") {
+        const condensed = entry.weight.toLowerCase().replace(/\s+/g, "");
+        if (condensed === "bodyweight" || condensed === "body" || condensed === "bw" || condensed === "bwt") {
+          return "bodyweight";
+        }
+      }
+
+      return "loaded";
+    }
+
+    function parseCardioMetric(value, allowZero = false) {
+      const numericValue = Number.parseFloat(String(value ?? "").trim());
+      if (!Number.isFinite(numericValue)) {
+        return null;
+      }
+
+      if (allowZero ? numericValue < 0 : numericValue <= 0) {
+        return null;
+      }
+
+      return Number.isInteger(numericValue) ? numericValue : Number(numericValue.toFixed(1));
     }
 
     function formatLongDate(dateString) {
@@ -833,6 +1057,79 @@
     function formatLargeNumber(value) {
       const rounded = Number.isInteger(value) ? value : Number(value.toFixed(1));
       return rounded.toLocaleString();
+    }
+
+    function formatAxisTick(value) {
+      const exercise = exerciseSelect.value;
+      if (isZone2Exercise(exercise)) {
+        return currentMetric === "max" ? formatValue(value) : formatValue(value);
+      }
+
+      return currentMetric === "max" ? formatValue(value) : formatLargeNumber(value);
+    }
+
+    function formatTooltipValue(value) {
+      const exercise = exerciseSelect.value;
+      if (isZone2Exercise(exercise)) {
+        return currentMetric === "max"
+          ? "Duration: " + formatValue(value) + " min"
+          : "Distance: " + formatValue(value) + " mi";
+      }
+
+      return currentMetric === "max"
+        ? "Weight: " + formatValue(value) + " lbs"
+        : "Volume: " + formatLargeNumber(value) + " lbs";
+    }
+
+    function getMetricConfig(exercise) {
+      if (isZone2Exercise(exercise)) {
+        if (currentMetric === "max") {
+          return {
+            key: "max",
+            copy: "Tracking total Zone 2 time logged per saved session.",
+            datasetLabel: "Duration per Session",
+            axisTitle: "Minutes"
+          };
+        }
+
+        return {
+          key: "volume",
+          copy: "Tracking estimated distance covered per saved session.",
+          datasetLabel: "Distance per Session",
+          axisTitle: "Distance (mi)"
+        };
+      }
+
+      if (currentMetric === "max") {
+        return {
+          key: "max",
+          copy: "Tracking the heaviest single weight logged per saved session.",
+          datasetLabel: "Max Weight per Session",
+          axisTitle: "Weight (lbs)"
+        };
+      }
+
+      return {
+        key: "volume",
+        copy: "Tracking total work performed per saved session.",
+        datasetLabel: "Total Volume per Session",
+        axisTitle: "Volume (lbs)"
+      };
+    }
+
+    function syncExercisePresentation(exercise) {
+      toggleButtons.forEach((button) => {
+        if (button.dataset.metric === "max") {
+          button.textContent = isZone2Exercise(exercise) ? "Duration" : "Max Weight";
+          return;
+        }
+
+        button.textContent = isZone2Exercise(exercise) ? "Distance" : "Total Volume";
+      });
+    }
+
+    function isZone2Exercise(exercise) {
+      return exercise === ZONE2_EXERCISE;
     }
   </script>
 </body>

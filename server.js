@@ -31,8 +31,11 @@ const EXERCISES = [
   "Machine Lateral Raises",
   "Reverse Pec Deck",
   "Paused Deadlifts",
-  "Deficit Deadlifts"
+  "Deficit Deadlifts",
+  "Zone 2"
 ];
+const ZONE2_EXERCISE = "Zone 2";
+const BODYWEIGHT_TOKENS = new Set(["bodyweight", "body", "bw", "bwt"]);
 
 const STATIC_FILES = {
   "/": "index.html",
@@ -177,9 +180,33 @@ function sanitizeEntries(entries) {
 
   return entries.map((entry, index) => {
     const exercise = EXERCISES.includes(entry && entry.exercise) ? entry.exercise : null;
+    const id = typeof entry.id === "string" && entry.id ? entry.id.slice(0, 120) : "entry-" + Date.now() + "-" + index;
+
+    if (isZone2Exercise(exercise)) {
+      const grade = parseCardioMetric(entry && entry.grade, true);
+      const speed = parseCardioMetric(entry && entry.speed);
+      const duration = parseCardioMetric(entry && entry.duration);
+
+      if (grade === null || speed === null || duration === null) {
+        return null;
+      }
+
+      return {
+        id,
+        exercise,
+        entryType: "zone2",
+        grade,
+        speed,
+        duration,
+        status: "completed"
+      };
+    }
+
     const sets = Number(entry && entry.sets);
     const reps = Number(entry && entry.reps);
-    const weight = Number(entry && entry.weight);
+    const weightType = normalizeWeightType(entry);
+    const weight = weightType === "bodyweight" ? null : Number(entry && entry.weight);
+    const status = entry && entry.status === "failed" ? "failed" : "completed";
 
     if (
       !exercise ||
@@ -188,23 +215,60 @@ function sanitizeEntries(entries) {
       sets < 1 ||
       !Number.isFinite(reps) ||
       !Number.isInteger(reps) ||
-      reps < 1 ||
-      !Number.isFinite(weight) ||
-      weight < 0
+      reps < 1
     ) {
       return null;
     }
 
-    const id = typeof entry.id === "string" && entry.id ? entry.id.slice(0, 120) : "entry-" + Date.now() + "-" + index;
+    if (weightType === "loaded" && (!Number.isFinite(weight) || weight < 0)) {
+      return null;
+    }
 
     return {
       id,
       exercise,
+      entryType: "strength",
       sets,
       reps,
-      weight: Number.isInteger(weight) ? weight : Number(weight.toFixed(1))
+      weight: weightType === "bodyweight"
+        ? null
+        : (Number.isInteger(weight) ? weight : Number(weight.toFixed(1))),
+      weightType,
+      status
     };
   }).filter(Boolean);
+}
+
+function normalizeWeightType(entry) {
+  if (entry && entry.weightType === "bodyweight") {
+    return "bodyweight";
+  }
+
+  if (entry && typeof entry.weight === "string") {
+    const condensed = entry.weight.toLowerCase().replace(/\s+/g, "");
+    if (BODYWEIGHT_TOKENS.has(condensed)) {
+      return "bodyweight";
+    }
+  }
+
+  return "loaded";
+}
+
+function parseCardioMetric(value, allowZero = false) {
+  const numericValue = Number.parseFloat(String(value ?? "").trim());
+  if (!Number.isFinite(numericValue)) {
+    return null;
+  }
+
+  if (allowZero ? numericValue < 0 : numericValue <= 0) {
+    return null;
+  }
+
+  return Number.isInteger(numericValue) ? numericValue : Number(numericValue.toFixed(1));
+}
+
+function isZone2Exercise(exercise) {
+  return exercise === ZONE2_EXERCISE;
 }
 
 function cloneEntries(entries) {

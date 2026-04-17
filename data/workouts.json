@@ -1,5 +1,415 @@
 {
-  "savedSessions": {},
-  "draftSessions": {},
-  "updatedAt": "2026-04-17T15:20:25.096Z"
+  "savedSessions": {
+    "2026-04-13": [
+      {
+        "id": "entry-1776442531062-7ed26747f95c38",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 225,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442531062-c3fad36d617618",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 255,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442531062-a77fc3bfdf7ac",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 275,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442531062-99545cb9635138",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 295,
+        "weightType": "loaded",
+        "status": "failed"
+      },
+      {
+        "id": "entry-1776442570426-d2ea655bda219",
+        "exercise": "Bench",
+        "sets": 4,
+        "reps": 3,
+        "weight": 230,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442609619-02f7afb0c68b78",
+        "exercise": "Close-Grip Bench",
+        "sets": 3,
+        "reps": 6,
+        "weight": 205,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442630938-8b912d2cf06c58",
+        "exercise": "Machine Rows",
+        "sets": 4,
+        "reps": 8,
+        "weight": 165,
+        "weightType": "loaded",
+        "status": "completed"
+      }
+    ],
+    "2026-04-14": [
+      {
+        "id": "entry-1776443034062-292e5fed6b108",
+        "exercise": "Squat",
+        "sets": 1,
+        "reps": 1,
+        "weight": 315,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443034062-42e70c4abc4ba",
+        "exercise": "Squat",
+        "sets": 1,
+        "reps": 1,
+        "weight": 335,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443055746-22c858127ea198",
+        "exercise": "Squat",
+        "sets": 4,
+        "reps": 3,
+        "weight": 295,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443132052-81f607cb8da638",
+        "exercise": "Bench",
+        "sets": 4,
+        "reps": 6,
+        "weight": 205,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443155786-57844d84a8da1",
+        "exercise": "Lat Pull Downs",
+        "sets": 3,
+        "reps": 8,
+        "weight": 160,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443172741-3e133d3779597",
+        "exercise": "Hamstring Curls",
+        "sets": 3,
+        "reps": 10,
+        "weight": 225,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443730168-5d1cfb1af7cb",
+        "exercise": "Hanging Knee Raises",
+        "sets": 1,
+        "reps": 7,
+        "weight": null,
+        "weightType": "bodyweight",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443736993-d50c6388d3c2d",
+        "exercise": "Hanging Knee Raises",
+        "sets": 2,
+        "reps": 8,
+        "weight": null,
+        "weightType": "bodyweight",
+        "status": "completed"
+      }
+    ],
+    "2026-04-16": [
+      {
+        "id": "entry-1776443827741-04511b562f2988",
+        "exercise": "Deadlift",
+        "sets": 1,
+        "reps": 1,
+        "weight": 405,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443827741-749ffcd56ba0f8",
+        "exercise": "Deadlift",
+        "sets": 1,
+        "reps": 1,
+        "weight": 445,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443842740-1bcf5d313ca5c",
+        "exercise": "Deadlift",
+        "sets": 3,
+        "reps": 3,
+        "weight": 375,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443876245-3454ad03ead93",
+        "exercise": "Paused Deadlifts",
+        "sets": 3,
+        "reps": 4,
+        "weight": 325,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443890282-f2b6f719bb0918",
+        "exercise": "Lat Pull Downs",
+        "sets": 3,
+        "reps": 10,
+        "weight": 140,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443901693-21f5d92d4ecda8",
+        "exercise": "Hamstring Curls",
+        "sets": 3,
+        "reps": 10,
+        "weight": 225,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443915657-b93f53a9b50b58",
+        "exercise": "Hanging Knee Raises",
+        "sets": 2,
+        "reps": 8,
+        "weight": null,
+        "weightType": "bodyweight",
+        "status": "completed"
+      }
+    ]
+  },
+  "draftSessions": {
+    "2026-04-13": [
+      {
+        "id": "entry-1776442531062-7ed26747f95c38",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 225,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442531062-c3fad36d617618",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 255,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442531062-a77fc3bfdf7ac",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 275,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442531062-99545cb9635138",
+        "exercise": "Bench",
+        "sets": 1,
+        "reps": 1,
+        "weight": 295,
+        "weightType": "loaded",
+        "status": "failed"
+      },
+      {
+        "id": "entry-1776442570426-d2ea655bda219",
+        "exercise": "Bench",
+        "sets": 4,
+        "reps": 3,
+        "weight": 230,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442609619-02f7afb0c68b78",
+        "exercise": "Close-Grip Bench",
+        "sets": 3,
+        "reps": 6,
+        "weight": 205,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776442630938-8b912d2cf06c58",
+        "exercise": "Machine Rows",
+        "sets": 4,
+        "reps": 8,
+        "weight": 165,
+        "weightType": "loaded",
+        "status": "completed"
+      }
+    ],
+    "2026-04-14": [
+      {
+        "id": "entry-1776443034062-292e5fed6b108",
+        "exercise": "Squat",
+        "sets": 1,
+        "reps": 1,
+        "weight": 315,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443034062-42e70c4abc4ba",
+        "exercise": "Squat",
+        "sets": 1,
+        "reps": 1,
+        "weight": 335,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443055746-22c858127ea198",
+        "exercise": "Squat",
+        "sets": 4,
+        "reps": 3,
+        "weight": 295,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443132052-81f607cb8da638",
+        "exercise": "Bench",
+        "sets": 4,
+        "reps": 6,
+        "weight": 205,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443155786-57844d84a8da1",
+        "exercise": "Lat Pull Downs",
+        "sets": 3,
+        "reps": 8,
+        "weight": 160,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443172741-3e133d3779597",
+        "exercise": "Hamstring Curls",
+        "sets": 3,
+        "reps": 10,
+        "weight": 225,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443730168-5d1cfb1af7cb",
+        "exercise": "Hanging Knee Raises",
+        "sets": 1,
+        "reps": 7,
+        "weight": null,
+        "weightType": "bodyweight",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443736993-d50c6388d3c2d",
+        "exercise": "Hanging Knee Raises",
+        "sets": 2,
+        "reps": 8,
+        "weight": null,
+        "weightType": "bodyweight",
+        "status": "completed"
+      }
+    ],
+    "2026-04-16": [
+      {
+        "id": "entry-1776443827741-04511b562f2988",
+        "exercise": "Deadlift",
+        "sets": 1,
+        "reps": 1,
+        "weight": 405,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443827741-749ffcd56ba0f8",
+        "exercise": "Deadlift",
+        "sets": 1,
+        "reps": 1,
+        "weight": 445,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443842740-1bcf5d313ca5c",
+        "exercise": "Deadlift",
+        "sets": 3,
+        "reps": 3,
+        "weight": 375,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443876245-3454ad03ead93",
+        "exercise": "Paused Deadlifts",
+        "sets": 3,
+        "reps": 4,
+        "weight": 325,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443890282-f2b6f719bb0918",
+        "exercise": "Lat Pull Downs",
+        "sets": 3,
+        "reps": 10,
+        "weight": 140,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443901693-21f5d92d4ecda8",
+        "exercise": "Hamstring Curls",
+        "sets": 3,
+        "reps": 10,
+        "weight": 225,
+        "weightType": "loaded",
+        "status": "completed"
+      },
+      {
+        "id": "entry-1776443915657-b93f53a9b50b58",
+        "exercise": "Hanging Knee Raises",
+        "sets": 2,
+        "reps": 8,
+        "weight": null,
+        "weightType": "bodyweight",
+        "status": "completed"
+      }
+    ]
+  },
+  "updatedAt": "2026-04-17T16:36:45.847Z"
 }
