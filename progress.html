@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gym Progress Tracker | Progress Charts</title>
+  <style>
+    :root {
+      --bg: #090d14;
+      --bg-elevated: rgba(19, 27, 39, 0.88);
+      --card: rgba(17, 24, 35, 0.92);
+      --card-border: rgba(123, 146, 171, 0.18);
+      --text: #f4f7fb;
+      --muted: #9fb2c8;
+      --accent: #42d6ff;
+      --accent-strong: #1ea8f5;
+      --success: #6af2ae;
+      --shadow: 0 24px 70px rgba(3, 10, 24, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Bahnschrift", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(66, 214, 255, 0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(106, 242, 174, 0.09), transparent 24%),
+        linear-gradient(180deg, #05070c 0%, #0a0f17 100%);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    .app-shell {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding: 18px 22px;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      background: rgba(10, 15, 23, 0.78);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      padding: 10px 16px;
+      border: 1px solid rgba(123, 146, 171, 0.16);
+      border-radius: 999px;
+      color: var(--muted);
+      transition: transform 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
+    }
+
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      color: var(--text);
+      border-color: rgba(66, 214, 255, 0.38);
+      background: rgba(66, 214, 255, 0.08);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .nav-link.active {
+      color: #04121d;
+      background: linear-gradient(135deg, var(--accent), #78f6c5);
+      border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 14px 26px rgba(30, 168, 245, 0.28);
+    }
+
+    .hero-card,
+    .card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(16, 24, 36, 0.96) 0%, rgba(12, 18, 28, 0.94) 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      padding: 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto auto -90px -90px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(66, 214, 255, 0.14), transparent 68%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(66, 214, 255, 0.1);
+      color: var(--accent);
+      font-size: 0.84rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero-card h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1.05;
+    }
+
+    .hero-card p {
+      margin: 0;
+      max-width: 38rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .picker-card {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: rgba(8, 13, 22, 0.76);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .picker-card label,
+    .metric-copy,
+    .stat-label {
+      color: var(--muted);
+    }
+
+    select {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(123, 146, 171, 0.18);
+      background: rgba(7, 12, 20, 0.86);
+      color: var(--text);
+      transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    select:hover,
+    select:focus {
+      border-color: rgba(66, 214, 255, 0.38);
+      box-shadow: 0 0 0 4px rgba(66, 214, 255, 0.12);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .card {
+      padding: 24px;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(66, 214, 255, 0.22);
+      box-shadow: 0 28px 70px rgba(4, 10, 20, 0.55);
+    }
+
+    .chart-card {
+      margin-bottom: 24px;
+    }
+
+    .chart-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .chart-top h2,
+    .stats-card h2 {
+      margin: 0 0 6px;
+      font-size: 1.35rem;
+    }
+
+    .chart-top p,
+    .stats-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .metric-toggle {
+      display: inline-flex;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(7, 12, 20, 0.82);
+      border: 1px solid rgba(123, 146, 171, 0.16);
+      gap: 6px;
+    }
+
+    .toggle-button {
+      border: none;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: transform 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .toggle-button:hover,
+    .toggle-button:focus-visible {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .toggle-button.active {
+      color: #04121d;
+      background: linear-gradient(135deg, var(--accent), #78f6c5);
+      box-shadow: 0 12px 22px rgba(30, 168, 245, 0.24);
+      font-weight: 700;
+    }
+
+    .metric-copy {
+      margin-bottom: 16px;
+    }
+
+    .chart-shell {
+      position: relative;
+      min-height: 380px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      background: radial-gradient(circle at top, rgba(66, 214, 255, 0.08), transparent 58%), rgba(7, 12, 20, 0.76);
+      overflow: hidden;
+      padding: 18px;
+    }
+
+    #progressChart {
+      width: 100%;
+      height: 340px;
+    }
+
+    .empty-state {
+      position: absolute;
+      inset: 18px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+      border: 1px dashed rgba(123, 146, 171, 0.18);
+      border-radius: calc(var(--radius-lg) - 4px);
+      background: rgba(7, 12, 20, 0.48);
+      color: var(--muted);
+      transition: opacity 180ms ease;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 1.02rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      background: rgba(8, 13, 22, 0.76);
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(66, 214, 255, 0.3);
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 920px) {
+      .hero-card,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell {
+        width: min(100% - 20px, 100%);
+        padding-top: 18px;
+      }
+
+      .top-nav,
+      .hero-card,
+      .card {
+        border-radius: 22px;
+      }
+
+      .top-nav,
+      .hero-card,
+      .card {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .chart-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .metric-toggle {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .toggle-button {
+        width: 100%;
+      }
+
+      .chart-shell {
+        min-height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <nav class="top-nav">
+      <div class="brand-block">
+        <h1 class="brand-title">Gym Progress Tracker</h1>
+        <p class="brand-subtitle">Visualize your strength trends over time.</p>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" href="index.html">Workout Logger</a>
+        <a class="nav-link active" href="progress.html">Progress Charts</a>
+      </div>
+    </nav>
+
+    <section class="hero-card">
+      <div>
+        <div class="eyebrow">Performance Analytics</div>
+        <h1>See how each lift is trending session by session.</h1>
+        <p>
+          Pick an exercise, switch between peak load and total volume, and get a quick read on your
+          personal record, total logged sessions, and first saved workout date.
+        </p>
+      </div>
+
+      <div class="picker-card">
+        <label for="exerciseSelect">Exercise</label>
+        <select id="exerciseSelect" name="exerciseSelect"></select>
+        <div class="metric-copy">The chart reads saved sessions from localStorage and updates instantly when your logger page changes.</div>
+      </div>
+    </section>
+
+    <section class="card chart-card">
+      <div class="chart-top">
+        <div>
+          <h2 id="chartTitle">Progress Overview</h2>
+          <p>Track either top-end strength or total workload for the selected exercise.</p>
+        </div>
+
+        <div class="metric-toggle" role="group" aria-label="Chart metric toggle">
+          <button class="toggle-button active" type="button" data-metric="max" aria-pressed="true">Max Weight</button>
+          <button class="toggle-button" type="button" data-metric="volume" aria-pressed="false">Total Volume</button>
+        </div>
+      </div>
+
+      <p class="metric-copy" id="metricCopy">Tracking the heaviest single weight logged per saved session.</p>
+
+      <div class="chart-shell">
+        <canvas id="progressChart"></canvas>
+        <div class="empty-state" id="emptyState">
+          <div>
+            <strong>No saved data yet</strong>
+            Save a session for this exercise on the logger page to start building your chart.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stats-card">
+      <h2>Summary Stats</h2>
+      <p>Quick reference numbers for the currently selected exercise.</p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Personal Record</span>
+          <div class="stat-value" id="prValue">--</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Sessions Logged</span>
+          <div class="stat-value" id="sessionCount">0</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">First Logged Date</span>
+          <div class="stat-value" id="firstLogged">--</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script>
+    const EXERCISES = [
+      "Bench",
+      "Squat",
+      "Deadlift",
+      "RDL's",
+      "Machine Rows",
+      "Lat Pull Downs",
+      "Hamstring Curls",
+      "Knee Extensions",
+      "Leg Press",
+      "Hanging Knee Raises",
+      "Tricep Extensions",
+      "Overhead Tricep Extensions",
+      "Spider Curls",
+      "Standing Dumbbell Curls",
+      "Close-Grip Bench",
+      "Lateral Raises",
+      "Machine Lateral Raises",
+      "Reverse Pec Deck",
+      "Paused Deadlifts",
+      "Deficit Deadlifts"
+    ];
+
+    const STORAGE_KEY = "gymTrackerSessions";
+
+    const exerciseSelect = document.getElementById("exerciseSelect");
+    const chartTitle = document.getElementById("chartTitle");
+    const metricCopy = document.getElementById("metricCopy");
+    const emptyState = document.getElementById("emptyState");
+    const prValue = document.getElementById("prValue");
+    const sessionCount = document.getElementById("sessionCount");
+    const firstLogged = document.getElementById("firstLogged");
+    const toggleButtons = Array.from(document.querySelectorAll(".toggle-button"));
+
+    let sessions = normalizeStore(readStorage(STORAGE_KEY));
+    let currentMetric = "max";
+
+    populateExerciseOptions();
+    const chart = createChart();
+    updateDashboard();
+
+    exerciseSelect.addEventListener("change", updateDashboard);
+
+    toggleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        currentMetric = button.dataset.metric;
+        updateToggleState();
+        updateDashboard();
+      });
+    });
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === STORAGE_KEY) {
+        sessions = normalizeStore(readStorage(STORAGE_KEY));
+        updateDashboard();
+      }
+    });
+
+    function populateExerciseOptions() {
+      const options = EXERCISES.map((exercise) => {
+        const option = document.createElement("option");
+        option.value = exercise;
+        option.textContent = exercise;
+        return option;
+      });
+
+      exerciseSelect.replaceChildren(...options);
+    }
+
+    function updateDashboard() {
+      const selectedExercise = exerciseSelect.value;
+      const series = buildSeries(selectedExercise);
+      const isMaxMetric = currentMetric === "max";
+      const values = series.map((point) => point[currentMetric]);
+
+      chartTitle.textContent = selectedExercise + " Progress";
+      metricCopy.textContent = isMaxMetric
+        ? "Tracking the heaviest single weight logged per saved session."
+        : "Tracking total work performed per saved session.";
+
+      chart.data.labels = series.map((point) => point.date);
+      chart.data.datasets[0].data = values;
+      chart.data.datasets[0].label = isMaxMetric ? "Max Weight per Session" : "Total Volume per Session";
+      chart.options.scales.y.title.text = isMaxMetric ? "Weight (lbs)" : "Volume (lbs)";
+      chart.update();
+
+      emptyState.hidden = series.length > 0;
+      renderStats(series);
+    }
+
+    function renderStats(series) {
+      if (!series.length) {
+        prValue.textContent = "--";
+        sessionCount.textContent = "0";
+        firstLogged.textContent = "--";
+        return;
+      }
+
+      const recordWeight = Math.max(...series.map((point) => point.max));
+
+      prValue.textContent = formatValue(recordWeight) + " lbs";
+      sessionCount.textContent = String(series.length);
+      firstLogged.textContent = formatLongDate(series[0].date);
+    }
+
+    function buildSeries(exercise) {
+      return Object.keys(sessions).sort().reduce((series, date) => {
+        const entries = sanitizeEntries(sessions[date]).filter((entry) => entry.exercise === exercise);
+        if (!entries.length) {
+          return series;
+        }
+
+        const max = Math.max(...entries.map((entry) => entry.weight));
+        const volume = entries.reduce((total, entry) => {
+          return total + (entry.sets * entry.reps * entry.weight);
+        }, 0);
+
+        series.push({
+          date,
+          max,
+          volume
+        });
+
+        return series;
+      }, []);
+    }
+
+    function createChart() {
+      const context = document.getElementById("progressChart").getContext("2d");
+
+      return new Chart(context, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              data: [],
+              borderColor: "#42d6ff",
+              borderWidth: 3,
+              tension: 0.34,
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBorderWidth: 2,
+              pointBackgroundColor: "#0a111b",
+              pointBorderColor: "#78f6c5",
+              backgroundColor: (chartContext) => createGradient(chartContext.chart)
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 900,
+            easing: "easeOutQuart"
+          },
+          interaction: {
+            intersect: false,
+            mode: "index"
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              displayColors: false,
+              backgroundColor: "rgba(8, 13, 22, 0.94)",
+              borderColor: "rgba(123, 146, 171, 0.24)",
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                title: (items) => formatLongDate(items[0].label),
+                label: (item) => {
+                  if (currentMetric === "max") {
+                    return "Weight: " + formatValue(item.parsed.y) + " lbs";
+                  }
+
+                  return "Volume: " + formatLargeNumber(item.parsed.y) + " lbs";
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: "#9fb2c8",
+                callback: function(value) {
+                  return formatShortDate(this.getLabelForValue(value));
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: "rgba(123, 146, 171, 0.15)"
+              },
+              ticks: {
+                color: "#9fb2c8",
+                callback: (value) => currentMetric === "max" ? formatValue(value) : formatLargeNumber(value)
+              },
+              title: {
+                display: true,
+                color: "#cfe3ff",
+                text: "Weight (lbs)"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function createGradient(chartInstance) {
+      const chartArea = chartInstance.chartArea;
+      if (!chartArea) {
+        return "rgba(66, 214, 255, 0.22)";
+      }
+
+      const gradient = chartInstance.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+      gradient.addColorStop(0, "rgba(66, 214, 255, 0.32)");
+      gradient.addColorStop(1, "rgba(66, 214, 255, 0.02)");
+      return gradient;
+    }
+
+    function updateToggleState() {
+      toggleButtons.forEach((button) => {
+        const isActive = button.dataset.metric === currentMetric;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function readStorage(key) {
+      try {
+        const rawValue = localStorage.getItem(key);
+        if (!rawValue) {
+          return {};
+        }
+
+        const parsedValue = JSON.parse(rawValue);
+        return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function normalizeStore(store) {
+      const normalizedStore = {};
+
+      Object.entries(store || {}).forEach(([date, entries]) => {
+        normalizedStore[date] = sanitizeEntries(entries);
+      });
+
+      return normalizedStore;
+    }
+
+    function sanitizeEntries(entries) {
+      if (!Array.isArray(entries)) {
+        return [];
+      }
+
+      return entries.map((entry) => {
+        const exercise = EXERCISES.includes(entry.exercise) ? entry.exercise : null;
+        const sets = Number(entry.sets);
+        const reps = Number(entry.reps);
+        const weight = Number(entry.weight);
+
+        if (!exercise || !Number.isFinite(sets) || sets < 1 || !Number.isFinite(reps) || reps < 1 || !Number.isFinite(weight) || weight < 0) {
+          return null;
+        }
+
+        return {
+          exercise,
+          sets,
+          reps,
+          weight
+        };
+      }).filter(Boolean);
+    }
+
+    function formatLongDate(dateString) {
+      if (!dateString) {
+        return "--";
+      }
+
+      return new Intl.DateTimeFormat(undefined, {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      }).format(new Date(dateString + "T12:00:00"));
+    }
+
+    function formatShortDate(dateString) {
+      if (!dateString) {
+        return "--";
+      }
+
+      return new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric"
+      }).format(new Date(dateString + "T12:00:00"));
+    }
+
+    function formatValue(value) {
+      return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+
+    function formatLargeNumber(value) {
+      const rounded = Number.isInteger(value) ? value : Number(value.toFixed(1));
+      return rounded.toLocaleString();
+    }
+  </script>
+</body>
+</html>

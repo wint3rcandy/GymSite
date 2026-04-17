@@ -1,13 +1,993 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Powerlifting Tracker</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <title>Gym Progress Tracker | Workout Logger</title>
+  <style>
+    :root {
+      --bg: #090d14;
+      --bg-elevated: rgba(19, 27, 39, 0.88);
+      --card: rgba(17, 24, 35, 0.92);
+      --card-border: rgba(123, 146, 171, 0.18);
+      --text: #f4f7fb;
+      --muted: #9fb2c8;
+      --accent: #42d6ff;
+      --accent-strong: #1ea8f5;
+      --success: #6af2ae;
+      --warning: #ffcc66;
+      --shadow: 0 24px 70px rgba(3, 10, 24, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Bahnschrift", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(66, 214, 255, 0.12), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(106, 242, 174, 0.1), transparent 28%),
+        linear-gradient(180deg, #05070c 0%, #0a0f17 100%);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app-shell {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding: 18px 22px;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      background: rgba(10, 15, 23, 0.78);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      padding: 10px 16px;
+      border: 1px solid rgba(123, 146, 171, 0.16);
+      border-radius: 999px;
+      color: var(--muted);
+      transition: transform 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
+    }
+
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      color: var(--text);
+      border-color: rgba(66, 214, 255, 0.38);
+      background: rgba(66, 214, 255, 0.08);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .nav-link.active {
+      color: #04121d;
+      background: linear-gradient(135deg, var(--accent), #78f6c5);
+      border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 14px 26px rgba(30, 168, 245, 0.28);
+    }
+
+    .hero-card,
+    .card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(16, 24, 36, 0.96) 0%, rgba(12, 18, 28, 0.94) 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 22px;
+      padding: 28px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(66, 214, 255, 0.16), transparent 68%);
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(66, 214, 255, 0.1);
+      color: var(--accent);
+      font-size: 0.84rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero-card h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1.05;
+    }
+
+    .hero-card p {
+      margin: 0;
+      max-width: 38rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      align-self: stretch;
+    }
+
+    .metric-card {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      background: rgba(9, 15, 24, 0.7);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(66, 214, 255, 0.28);
+    }
+
+    .metric-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      padding: 24px;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(66, 214, 255, 0.22);
+      box-shadow: 0 28px 70px rgba(4, 10, 20, 0.55);
+    }
+
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 1.35rem;
+    }
+
+    .card-intro {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field,
+    .field-wide {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-wide {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(123, 146, 171, 0.18);
+      background: rgba(7, 12, 20, 0.86);
+      color: var(--text);
+      transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    input:hover,
+    select:hover,
+    input:focus,
+    select:focus {
+      border-color: rgba(66, 214, 255, 0.38);
+      box-shadow: 0 0 0 4px rgba(66, 214, 255, 0.12);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .button {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 20px;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(11, 24, 48, 0.35);
+      filter: brightness(1.04);
+      outline: none;
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #04111c;
+      font-weight: 700;
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid rgba(123, 146, 171, 0.16);
+    }
+
+    .status-panel {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .status-banner {
+      padding: 16px 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      background: rgba(8, 13, 22, 0.74);
+    }
+
+    .status-banner strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.96rem;
+    }
+
+    .status-copy {
+      color: var(--muted);
+      min-height: 1.5em;
+    }
+
+    .status-copy.ok {
+      color: var(--success);
+    }
+
+    .status-copy.warn {
+      color: var(--warning);
+    }
+
+    .mini-stats {
+      display: grid;
+      gap: 14px;
+    }
+
+    .mini-stat {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      background: rgba(8, 13, 22, 0.72);
+    }
+
+    .mini-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+    }
+
+    .mini-stat strong {
+      font-size: 1.28rem;
+    }
+
+    .table-card {
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .table-header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(123, 146, 171, 0.14);
+      background: rgba(7, 12, 20, 0.76);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 620px;
+    }
+
+    th,
+    td {
+      padding: 15px 16px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.86rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(123, 146, 171, 0.16);
+    }
+
+    tbody tr {
+      transition: background 180ms ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(66, 214, 255, 0.05);
+    }
+
+    td {
+      border-bottom: 1px solid rgba(123, 146, 171, 0.1);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .delete-button {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .delete-button:hover,
+    .delete-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(255, 118, 118, 0.34);
+      background: rgba(255, 118, 118, 0.1);
+      outline: none;
+    }
+
+    .empty-row td {
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 920px) {
+      .hero-card,
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-meta {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell {
+        width: min(100% - 20px, 100%);
+        padding-top: 18px;
+      }
+
+      .top-nav,
+      .hero-card,
+      .card {
+        border-radius: 22px;
+      }
+
+      .top-nav {
+        padding: 18px;
+      }
+
+      .hero-card {
+        padding: 22px;
+      }
+
+      .hero-meta,
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .button-row {
+        width: 100%;
+      }
+
+      .button {
+        flex: 1 1 100%;
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>My Powerlifting Tracker</h1>
+  <div class="app-shell">
+    <nav class="top-nav">
+      <div class="brand-block">
+        <h1 class="brand-title">Gym Progress Tracker</h1>
+        <p class="brand-subtitle">Log training sessions and keep your numbers moving.</p>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" href="index.html">Workout Logger</a>
+        <a class="nav-link" href="progress.html">Progress Charts</a>
+      </div>
+    </nav>
+
+    <section class="hero-card">
+      <div class="hero-copy">
+        <div class="eyebrow">Daily Training Log</div>
+        <h1>Track your lifts with a clean, focused workflow.</h1>
+        <p>
+          Add sets as you train, review the full session for the selected day, and save it to
+          localStorage so your progress is ready the next time you open the app.
+        </p>
+      </div>
+      <div class="hero-meta" aria-label="Current session summary">
+        <div class="metric-card">
+          <span class="metric-label">Entries</span>
+          <div class="metric-value" id="entryCount">0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Exercises</span>
+          <div class="metric-value" id="exerciseCount">0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Session Volume</span>
+          <div class="metric-value" id="sessionVolume">0 lbs</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-grid">
+      <article class="card">
+        <h2>Workout Logger</h2>
+        <p class="card-intro">Choose the training date, enter your set details, and build out the day one entry at a time.</p>
+
+        <form id="loggerForm">
+          <div class="field-grid">
+            <div class="field">
+              <label for="sessionDate">Date</label>
+              <input id="sessionDate" name="sessionDate" type="date" required>
+            </div>
+
+            <div class="field">
+              <label for="exerciseSelect">Exercise</label>
+              <select id="exerciseSelect" name="exerciseSelect" required></select>
+            </div>
+
+            <div class="field">
+              <label for="setsInput">Number of Sets</label>
+              <input id="setsInput" name="setsInput" type="number" min="1" step="1" placeholder="3" required>
+            </div>
+
+            <div class="field">
+              <label for="repsInput">Number of Reps</label>
+              <input id="repsInput" name="repsInput" type="number" min="1" step="1" placeholder="8" required>
+            </div>
+
+            <div class="field-wide">
+              <label for="weightInput">Weight (lbs)</label>
+              <input id="weightInput" name="weightInput" type="number" min="0" step="0.5" placeholder="185" required>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button class="button button-primary" type="submit">Add Set</button>
+            <button class="button button-secondary" id="saveSessionButton" type="button">Save Session</button>
+          </div>
+        </form>
+      </article>
+
+      <aside class="status-panel">
+        <div class="status-banner">
+          <strong>Session status</strong>
+          <div class="status-copy" id="statusCopy" aria-live="polite"></div>
+        </div>
+
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <span>Selected Date</span>
+            <strong id="selectedDateLabel">--</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Saved Entries</span>
+            <strong id="savedEntryCount">0</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Saved Session Volume</span>
+            <strong id="savedVolume">0 lbs</strong>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card table-card">
+      <div class="table-header">
+        <div>
+          <h2>Session Log</h2>
+          <p id="tableSubtitle">All entries for the currently selected date.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Exercise</th>
+              <th scope="col">Sets</th>
+              <th scope="col">Reps</th>
+              <th scope="col">Weight</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="sessionTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const EXERCISES = [
+      "Bench",
+      "Squat",
+      "Deadlift",
+      "RDL's",
+      "Machine Rows",
+      "Lat Pull Downs",
+      "Hamstring Curls",
+      "Knee Extensions",
+      "Leg Press",
+      "Hanging Knee Raises",
+      "Tricep Extensions",
+      "Overhead Tricep Extensions",
+      "Spider Curls",
+      "Standing Dumbbell Curls",
+      "Close-Grip Bench",
+      "Lateral Raises",
+      "Machine Lateral Raises",
+      "Reverse Pec Deck",
+      "Paused Deadlifts",
+      "Deficit Deadlifts"
+    ];
+
+    const STORAGE_KEYS = {
+      sessions: "gymTrackerSessions",
+      drafts: "gymTrackerDrafts"
+    };
+
+    const loggerForm = document.getElementById("loggerForm");
+    const dateInput = document.getElementById("sessionDate");
+    const exerciseSelect = document.getElementById("exerciseSelect");
+    const setsInput = document.getElementById("setsInput");
+    const repsInput = document.getElementById("repsInput");
+    const weightInput = document.getElementById("weightInput");
+    const saveSessionButton = document.getElementById("saveSessionButton");
+    const sessionTableBody = document.getElementById("sessionTableBody");
+    const statusCopy = document.getElementById("statusCopy");
+    const selectedDateLabel = document.getElementById("selectedDateLabel");
+    const savedEntryCount = document.getElementById("savedEntryCount");
+    const savedVolume = document.getElementById("savedVolume");
+    const tableSubtitle = document.getElementById("tableSubtitle");
+    const entryCount = document.getElementById("entryCount");
+    const exerciseCount = document.getElementById("exerciseCount");
+    const sessionVolume = document.getElementById("sessionVolume");
+
+    // Saved sessions power the charts. Drafts keep in-progress changes alive between refreshes.
+    let sessions = normalizeStore(readStorage(STORAGE_KEYS.sessions));
+    let drafts = normalizeStore(readStorage(STORAGE_KEYS.drafts));
+
+    writeStorage(STORAGE_KEYS.sessions, sessions);
+    writeStorage(STORAGE_KEYS.drafts, drafts);
+
+    populateExerciseOptions();
+    dateInput.value = getTodayISODate();
+    loadDate(dateInput.value);
+
+    loggerForm.addEventListener("submit", handleAddEntry);
+    saveSessionButton.addEventListener("click", saveSession);
+    dateInput.addEventListener("change", () => loadDate(dateInput.value));
+    sessionTableBody.addEventListener("click", handleDeleteEntry);
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === STORAGE_KEYS.sessions || event.key === STORAGE_KEYS.drafts) {
+        sessions = normalizeStore(readStorage(STORAGE_KEYS.sessions));
+        drafts = normalizeStore(readStorage(STORAGE_KEYS.drafts));
+        loadDate(dateInput.value);
+      }
+    });
+
+    function populateExerciseOptions() {
+      const options = EXERCISES.map((exercise) => {
+        const option = document.createElement("option");
+        option.value = exercise;
+        option.textContent = exercise;
+        return option;
+      });
+
+      exerciseSelect.replaceChildren(...options);
+    }
+
+    function handleAddEntry(event) {
+      event.preventDefault();
+
+      const sets = Number.parseInt(setsInput.value, 10);
+      const reps = Number.parseInt(repsInput.value, 10);
+      const weight = Number.parseFloat(weightInput.value);
+
+      if (!Number.isInteger(sets) || sets < 1) {
+        setStatus("Enter a valid number of sets before adding the entry.", "warn");
+        setsInput.focus();
+        return;
+      }
+
+      if (!Number.isInteger(reps) || reps < 1) {
+        setStatus("Enter a valid number of reps before adding the entry.", "warn");
+        repsInput.focus();
+        return;
+      }
+
+      if (!Number.isFinite(weight) || weight < 0) {
+        setStatus("Enter a valid training weight in pounds.", "warn");
+        weightInput.focus();
+        return;
+      }
+
+      const date = dateInput.value;
+      const entries = ensureDraft(date);
+
+      entries.push({
+        id: createEntryId(),
+        exercise: exerciseSelect.value,
+        sets,
+        reps,
+        weight
+      });
+
+      drafts[date] = entries;
+      writeStorage(STORAGE_KEYS.drafts, drafts);
+      render();
+
+      setsInput.value = "";
+      repsInput.value = "";
+      weightInput.value = "";
+      setsInput.focus();
+
+      setStatus("Entry added to the current session draft. Save when you are ready.", "ok");
+    }
+
+    function handleDeleteEntry(event) {
+      const button = event.target.closest("button[data-entry-id]");
+      if (!button) {
+        return;
+      }
+
+      const date = dateInput.value;
+      const entryId = button.dataset.entryId;
+      const nextEntries = ensureDraft(date).filter((entry) => entry.id !== entryId);
+
+      drafts[date] = nextEntries;
+      writeStorage(STORAGE_KEYS.drafts, drafts);
+      render();
+      setStatus("Entry removed from the current session draft.", "ok");
+    }
+
+    function saveSession() {
+      const date = dateInput.value;
+      const draftEntries = ensureDraft(date);
+
+      if (draftEntries.length) {
+        sessions[date] = draftEntries.map((entry) => ({ ...entry }));
+        setStatus(
+          "Session saved to localStorage for " + formatLongDate(date) + ".",
+          "ok"
+        );
+      } else {
+        delete sessions[date];
+        setStatus(
+          "Saved session cleared for " + formatLongDate(date) + ".",
+          "ok"
+        );
+      }
+
+      writeStorage(STORAGE_KEYS.sessions, sessions);
+      writeStorage(STORAGE_KEYS.drafts, drafts);
+      render();
+    }
+
+    function loadDate(date) {
+      if (!date) {
+        return;
+      }
+
+      ensureDraft(date);
+      render();
+    }
+
+    function render() {
+      const date = dateInput.value;
+      const currentEntries = ensureDraft(date);
+      const savedEntries = sanitizeEntries(sessions[date]);
+
+      renderTable(currentEntries);
+      renderSessionSummary(currentEntries);
+      renderSavedSummary(savedEntries);
+      updateStatusForSaveState(currentEntries, savedEntries, date);
+    }
+
+    function renderTable(entries) {
+      tableSubtitle.textContent = "All entries for " + formatLongDate(dateInput.value) + ".";
+
+      if (!entries.length) {
+        sessionTableBody.innerHTML =
+          '<tr class="empty-row"><td colspan="5">No sets logged for this date yet.</td></tr>';
+        return;
+      }
+
+      sessionTableBody.innerHTML = entries.map((entry) => {
+        return [
+          "<tr>",
+          "<td>" + entry.exercise + "</td>",
+          "<td>" + entry.sets + "</td>",
+          "<td>" + entry.reps + "</td>",
+          "<td>" + formatWeight(entry.weight) + " lbs</td>",
+          '<td><button class="delete-button" type="button" data-entry-id="' + entry.id + '">Delete</button></td>',
+          "</tr>"
+        ].join("");
+      }).join("");
+    }
+
+    function renderSessionSummary(entries) {
+      const exerciseTotal = new Set(entries.map((entry) => entry.exercise)).size;
+      const volumeTotal = entries.reduce((total, entry) => {
+        return total + (entry.sets * entry.reps * entry.weight);
+      }, 0);
+
+      entryCount.textContent = String(entries.length);
+      exerciseCount.textContent = String(exerciseTotal);
+      sessionVolume.textContent = formatLargeNumber(volumeTotal) + " lbs";
+      selectedDateLabel.textContent = formatLongDate(dateInput.value);
+    }
+
+    function renderSavedSummary(entries) {
+      const savedSessionVolume = entries.reduce((total, entry) => {
+        return total + (entry.sets * entry.reps * entry.weight);
+      }, 0);
+
+      savedEntryCount.textContent = String(entries.length);
+      savedVolume.textContent = formatLargeNumber(savedSessionVolume) + " lbs";
+    }
+
+    function updateStatusForSaveState(currentEntries, savedEntries, date) {
+      const currentJSON = JSON.stringify(currentEntries);
+      const savedJSON = JSON.stringify(savedEntries);
+
+      if (!currentEntries.length && !savedEntries.length) {
+        setStatus("Start adding sets for " + formatLongDate(date) + ".", "");
+        return;
+      }
+
+      if (currentJSON === savedJSON) {
+        setStatus("Session is saved and up to date for " + formatLongDate(date) + ".", "ok");
+        return;
+      }
+
+      setStatus("You have unsaved changes for " + formatLongDate(date) + ".", "warn");
+    }
+
+    function ensureDraft(date) {
+      if (!Array.isArray(drafts[date])) {
+        drafts[date] = sanitizeEntries(sessions[date]).map((entry) => ({ ...entry }));
+        writeStorage(STORAGE_KEYS.drafts, drafts);
+      }
+
+      return drafts[date];
+    }
+
+    function readStorage(key) {
+      try {
+        const rawValue = localStorage.getItem(key);
+        if (!rawValue) {
+          return {};
+        }
+
+        const parsedValue = JSON.parse(rawValue);
+        return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function writeStorage(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function normalizeStore(store) {
+      const normalizedStore = {};
+
+      Object.entries(store || {}).forEach(([date, entries]) => {
+        normalizedStore[date] = sanitizeEntries(entries);
+      });
+
+      return normalizedStore;
+    }
+
+    function sanitizeEntries(entries) {
+      if (!Array.isArray(entries)) {
+        return [];
+      }
+
+      return entries.map((entry, index) => {
+        const exercise = EXERCISES.includes(entry.exercise) ? entry.exercise : null;
+        const sets = Number(entry.sets);
+        const reps = Number(entry.reps);
+        const weight = Number(entry.weight);
+
+        if (!exercise || !Number.isFinite(sets) || sets < 1 || !Number.isFinite(reps) || reps < 1 || !Number.isFinite(weight) || weight < 0) {
+          return null;
+        }
+
+        return {
+          id: typeof entry.id === "string" && entry.id ? entry.id : "entry-" + Date.now() + "-" + index,
+          exercise,
+          sets,
+          reps,
+          weight
+        };
+      }).filter(Boolean);
+    }
+
+    function createEntryId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+
+      return "entry-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    }
+
+    function getTodayISODate() {
+      const today = new Date();
+      const offset = today.getTimezoneOffset() * 60000;
+      return new Date(today.getTime() - offset).toISOString().slice(0, 10);
+    }
+
+    function formatLongDate(dateString) {
+      if (!dateString) {
+        return "--";
+      }
+
+      return new Intl.DateTimeFormat(undefined, {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      }).format(new Date(dateString + "T12:00:00"));
+    }
+
+    function formatWeight(value) {
+      return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+
+    function formatLargeNumber(value) {
+      const rounded = Number.isInteger(value) ? value : Number(value.toFixed(1));
+      return rounded.toLocaleString();
+    }
+
+    function setStatus(message, tone) {
+      statusCopy.textContent = message;
+      statusCopy.className = "status-copy" + (tone ? " " + tone : "");
+    }
+  </script>
 </body>
 </html>
